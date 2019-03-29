@@ -2,6 +2,19 @@
 Changelog
 =========
 
+0.6.0
+=====
+
+This version is a major release which breaks several aspects of the previous
+grafanalib API.
+
+Breaking changes
+----------------
+
+* Python 3.7 is now the only supported version
+
+
+
 0.5.2 (2018-07-19)
 ==================
 

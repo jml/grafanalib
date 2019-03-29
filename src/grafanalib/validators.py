@@ -1,46 +1,22 @@
 import re
+
 import attr
 
 
-@attr.attributes(repr=False, slots=True)
-class _IsInValidator(object):
-    choices = attr.attr()
-
-    def __call__(self, inst, attr, value):
-        if value not in self.choices:
-            raise ValueError("{attr} should be one of {choice}".format(
-                attr=attr.name, choice=self.choices))
-
-    def __repr__(self):
-        return (
-            "<is value present in list of  {choice}>"
-            .format(choice=self.choices)
-        )
-
-
-def is_in(choices):
-    """
-    A validator that raises a :exc:`ValueError` if the attribute value is not
-    in a provided list.
-
-    :param choices: List of valid choices
-    """
-    return _IsInValidator(choices)
-
-
-def is_interval(instance, attribute, value):
+def is_interval(_instance, _attribute, value):
     """
     A validator that raises a :exc:`ValueError` if the attribute value is not
     matching regular expression.
     """
-    if not re.match("^[+-]?\d*[smhdMY]$", value):
+    if not re.match(r"^[+-]?\d*[smhdMY]$", value):
         raise ValueError(
             "valid interval should be a string "
-            "matching an expression: ^[+-]?\d*[smhdMY]$. "
-            "Examples: 24h 7d 1M +24h -24h")
+            "matching an expression: ^[+-]?\\d*[smhdMY]$. "
+            "Examples: 24h 7d 1M +24h -24h"
+        )
 
 
-def is_color_code(instance, attribute, value):
+def is_color_code(_instance, attribute, value):
     """
     A validator that raises a :exc:`ValueError` if attribute value
     is not valid color code.
@@ -59,19 +35,17 @@ def is_color_code(instance, attribute, value):
 
 
 @attr.attributes(repr=False, slots=True)
-class _ListOfValidator(object):
+class _ListOfValidator:
     etype = attr.attr()
 
-    def __call__(self, inst, attr, value):
+    def __call__(self, inst, attribute, value):
         if False in set(map(lambda el: isinstance(el, self.etype), value)):
-            raise ValueError("{attr} should be list of {etype}".format(
-                attr=attr.name, etype=self.etype))
+            raise ValueError(
+                "{attr} should be list of {etype}".format(attr=attribute.name, etype=self.etype)
+            )
 
     def __repr__(self):
-        return (
-            "<is value is the list of {etype}>"
-            .format(etype=self.etype)
-        )
+        return "<is value is the list of {etype}>".format(etype=self.etype)
 
 
 def is_list_of(etype):

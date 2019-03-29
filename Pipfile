@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+grafanalib = {editable = true,extras = ["dev"],path = "."}
+
+[dev-packages]
+banksucker = {editable = true,path = "."}
+coverage = "*"
+hypothesis = "*"
+mypy = "*"
+pre-commit = "*"
+pytest = "*"
+grafanalib = {editable = true,path = "."}
+
+[requires]
+python_version = "3.7"

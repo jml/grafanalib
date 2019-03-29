@@ -1,0 +1,26 @@
+[MASTER]
+jobs=0
+persistent=no
+
+[MESSAGES CONTROL]
+disable=
+    # We don't want pylint to even try importing things
+    import-error,
+    # Don't tell me how to code
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-lines,
+    # We're already checking for line length elsewhere
+    line-too-long,
+    # Hypothesis's `composite` triggers false positives, and we ought to catch the general case with MyPy.
+    no-value-for-parameter,
+    # If black does it, it must be right
+    bad-continuation,
+    # Going to enforce this with human vigilance
+    invalid-name,
+    # MyPy gets these better
+    no-member,
+    # Want to enable these, but not yet.
+    missing-docstring,
+    fixme
+

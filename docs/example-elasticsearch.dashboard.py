@@ -7,40 +7,40 @@ The graph shows the following metrics for HTTP requests to the URL path "/login"
 - Max. response time per point of time of HTTP requests
 """
 
-from grafanalib.core import *
-from grafanalib.elasticsearch import *
+from grafanalib import core, elasticsearch
 
 suc_label = "Success (200-300)"
 clt_err_label = "Client Errors (400-500)"
 resptime_label = "Max response time"
 
 filters = [
-    Filter(query="response: [200 TO 300]", label=suc_label),
-    Filter(query="response: [400 TO 500]", label=clt_err_label),
+    core.Filter(query="response: [200 TO 300]", label=suc_label),
+    core.Filter(query="response: [400 TO 500]", label=clt_err_label),
 ]
 
 tgts = [
-    ElasticsearchTarget(
+    elasticsearch.ElasticsearchTarget(
         query='request: "/login"',
         bucketAggs=[
-            FiltersGroupBy(filters=filters),
-            DateHistogramGroupBy(interval="10m")],
+            elasticsearch.FiltersGroupBy(filters=filters),
+            elasticsearch.DateHistogramGroupBy(interval="10m"),
+        ],
     ).auto_bucket_agg_ids(),
-    ElasticsearchTarget(
+    elasticsearch.ElasticsearchTarget(
         query='request: "/login"',
-        metricAggs=[MaxMetricAgg(field="resptime")],
+        metricAggs=[elasticsearch.MaxMetricAgg(field="resptime")],
         alias=resptime_label,
     ).auto_bucket_agg_ids(),
 ]
 
-g = Graph(
+g = core.Graph(
     title="login requests",
     dataSource="elasticsearch",
     targets=tgts,
     lines=False,
-    legend=Legend(alignAsTable=True, rightSide=True, total=True, current=True, max=True),
+    legend=core.Legend(alignAsTable=True, rightSide=True, total=True, current=True, max=True),
     lineWidth=1,
-    nullPointMode=NULL_AS_NULL,
+    nullPointMode=core.NULL_AS_NULL,
     seriesOverrides=[
         {
             "alias": suc_label,
@@ -48,7 +48,7 @@ g = Graph(
             "lines": False,
             "stack": "A",
             "yaxis": 1,
-            "color": "#629E51"
+            "color": "#629E51",
         },
         {
             "alias": clt_err_label,
@@ -56,7 +56,7 @@ g = Graph(
             "lines": False,
             "stack": "A",
             "yaxis": 1,
-            "color": "#E5AC0E"
+            "color": "#E5AC0E",
         },
         {
             "alias": resptime_label,
@@ -65,23 +65,15 @@ g = Graph(
             "nullPointMode": "connected",
             "steppedLine": True,
             "yaxis": 2,
-            "color": "#447EBC"
+            "color": "#447EBC",
         },
     ],
     yAxes=[
-        YAxis(
-            label="Count",
-            format=SHORT_FORMAT,
-            decimals=0
-        ),
-        YAxis(
-            label="Response Time",
-            format=SECONDS_FORMAT,
-            decimals=2
-        ),
+        core.YAxis(label="Count", format=core.SHORT_FORMAT, decimals=0),
+        core.YAxis(label="Response Time", format=core.SECONDS_FORMAT, decimals=2),
     ],
     transparent=True,
     span=12,
 )
 
-dashboard = Dashboard(title="HTTP dashboard", rows=[Row(panels=[g])])
+dashboard = core.Dashboard(title="HTTP dashboard", rows=[core.Row(panels=[g])])

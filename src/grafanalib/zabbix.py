@@ -1,11 +1,9 @@
+from typing import List, Tuple
+
 import attr
-import itertools
-from attr.validators import instance_of
-from numbers import Number
-from grafanalib.validators import is_interval, is_in, is_color_code, is_list_of
-from grafanalib.core import (
-    RGBA, Percent, Pixels, DashboardLink,
-    DEFAULT_ROW_HEIGHT, BLANK, GREEN)
+from attr.validators import in_, instance_of
+from grafanalib.core import BLANK, DEFAULT_ROW_HEIGHT, GREEN, RGBA, DashboardLink, Percent, Pixels
+from grafanalib.validators import is_color_code, is_interval, is_list_of
 
 ZABBIX_TRIGGERS_TYPE = "alexanderzobnin-zabbix-triggers-panel"
 
@@ -13,90 +11,48 @@ ZABBIX_QMODE_METRICS = 0
 ZABBIX_QMODE_SERVICES = 1
 ZABBIX_QMODE_TEXT = 2
 
-ZABBIX_SLA_PROP_STATUS = {
-    "name": "Status",
-    "property": "status"}
+ZABBIX_SLA_PROP_STATUS = {"name": "Status", "property": "status"}
 
-ZABBIX_SLA_PROP_SLA = {
-    "name": "SLA",
-    "property": "sla"}
+ZABBIX_SLA_PROP_SLA = {"name": "SLA", "property": "sla"}
 
-ZABBIX_SLA_PROP_OKTIME = {
-    "name": "OK time",
-    "property": "okTime"}
+ZABBIX_SLA_PROP_OKTIME = {"name": "OK time", "property": "okTime"}
 
-ZABBIX_SLA_PROP_PROBTIME = {
-    "name": "Problem time",
-    "property": "problemTime"}
+ZABBIX_SLA_PROP_PROBTIME = {"name": "Problem time", "property": "problemTime"}
 
-ZABBIX_SLA_PROP_DOWNTIME = {
-    "name": "Down time",
-    "property": "downtimeTime",
-}
+ZABBIX_SLA_PROP_DOWNTIME = {"name": "Down time", "property": "downtimeTime"}
 
-ZABBIX_EVENT_PROBLEMS = {
-    "text": "Problems",
-    "value": [1]}
+ZABBIX_EVENT_PROBLEMS = {"text": "Problems", "value": [1]}
 
-ZABBIX_EVENT_OK = {
-    "text": "OK",
-    "value": [0]}
+ZABBIX_EVENT_OK = {"text": "OK", "value": [0]}
 
-ZABBIX_EVENT_ALL = {
-    "text": "All",
-    "value": [0, 1]}
+ZABBIX_EVENT_ALL = {"text": "All", "value": [0, 1]}
 
 ZABBIX_TRIGGERS_SHOW_ALL = "all triggers"
 ZABBIX_TRIGGERS_SHOW_ACK = "acknowledged"
 ZABBIX_TRIGGERS_SHOW_NACK = "unacknowledged"
 
-ZABBIX_SORT_TRIGGERS_BY_CHANGE = {
-    "text": "last change",
-    "value": "lastchange",
-}
-ZABBIX_SORT_TRIGGERS_BY_SEVERITY = {
-    "text": "severity",
-    "value": "priority",
-}
-
-ZABBIX_SEVERITY_COLORS = (
-    ("#B7DBAB", "Not classified"),
-    ("#82B5D8", "Information"),
-    ("#E5AC0E", "Warning"),
-    ("#C15C17", "Average"),
-    ("#BF1B00", "High"),
-    ("#890F02", "Disaster"),
-)
-
-
-def convertZabbixSeverityColors(colors):
-    priorities = itertools.count(0)
-    return [ZabbixColor(color=c, priority=next(priorities), severity=s)
-            for c, s in colors]
+ZABBIX_SORT_TRIGGERS_BY_CHANGE = {"text": "last change", "value": "lastchange"}
+ZABBIX_SORT_TRIGGERS_BY_SEVERITY = {"text": "severity", "value": "priority"}
 
 
 @attr.s
-class ZabbixTargetOptions(object):
+class ZabbixTargetOptions:
     showDisabledItems = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            "showDisabledItems": self.showDisabledItems
-        }
+        return {"showDisabledItems": self.showDisabledItems}
 
 
 @attr.s
-class ZabbixTargetField(object):
+class ZabbixTargetField:
     filter = attr.ib(default="", validator=instance_of(str))
 
     def to_json_data(self):
-        return {
-            "filter": self.filter
-        }
+        return {"filter": self.filter}
 
 
 @attr.s
-class ZabbixTarget(object):
+class ZabbixTarget:
     """Generates Zabbix datasource target JSON structure.
 
     Grafana-Zabbix is a plugin for Grafana allowing
@@ -138,8 +94,9 @@ class ZabbixTarget(object):
     item = attr.ib(default="", validator=instance_of(str))
     itService = attr.ib(default="", validator=instance_of(str))
     mode = attr.ib(default=ZABBIX_QMODE_METRICS, validator=instance_of(int))
-    options = attr.ib(default=attr.Factory(ZabbixTargetOptions),
-                      validator=instance_of(ZabbixTargetOptions))
+    options = attr.ib(
+        default=attr.Factory(ZabbixTargetOptions), validator=instance_of(ZabbixTargetOptions)
+    )
     refId = attr.ib(default="")
     slaProperty = attr.ib(default=attr.Factory(dict))
     textFilter = attr.ib(default="", validator=instance_of(str))
@@ -159,7 +116,7 @@ class ZabbixTarget(object):
             "refId": self.refId,
         }
         if self.mode == ZABBIX_QMODE_SERVICES:
-            obj["slaProperty"] = self.slaProperty,
+            obj["slaProperty"] = (self.slaProperty,)
             obj["itservice"] = {"name": self.itService}
         if self.mode == ZABBIX_QMODE_TEXT:
             obj["textFilter"] = self.textFilter
@@ -168,31 +125,23 @@ class ZabbixTarget(object):
 
 
 @attr.s
-class ZabbixDeltaFunction(object):
+class ZabbixDeltaFunction:
     """ZabbixDeltaFunction
 
     Convert absolute values to delta, for example, bits to bits/sec
     http://docs.grafana-zabbix.org/reference/functions/#delta
     """
+
     added = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
         text = "delta()"
-        definition = {
-            "category": "Transform",
-            "name": "delta",
-            "defaultParams": [],
-            "params": []}
-        return {
-            "added": self.added,
-            "text": text,
-            "def": definition,
-            "params": [],
-        }
+        definition = {"category": "Transform", "name": "delta", "defaultParams": [], "params": []}
+        return {"added": self.added, "text": text, "def": definition, "params": []}
 
 
 @attr.s
-class ZabbixGroupByFunction(object):
+class ZabbixGroupByFunction:
     """ZabbixGroupByFunction
 
     Takes each timeseries and consolidate its points falled in given interval
@@ -206,35 +155,29 @@ class ZabbixGroupByFunction(object):
 
     added = attr.ib(default=False, validator=instance_of(bool))
     interval = attr.ib(default=_default_interval, validator=is_interval)
-    function = attr.ib(default=_default_function,
-                       validator=is_in(_options))
+    function = attr.ib(default=_default_function, validator=in_(_options))
 
     def to_json_data(self):
         text = "groupBy({interval}, {function})"
         definition = {
             "category": "Transform",
             "name": "groupBy",
-            "defaultParams": [
-                self._default_interval,
-                self._default_function,
-            ],
+            "defaultParams": [self._default_interval, self._default_function],
             "params": [
-                {"name": "interval",
-                 "type": "string"},
-                {"name": "function",
-                 "options": self._options,
-                 "type": "string"}]}
+                {"name": "interval", "type": "string"},
+                {"name": "function", "options": self._options, "type": "string"},
+            ],
+        }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval, function=self.function),
+            "text": text.format(interval=self.interval, function=self.function),
             "params": [self.interval, self.function],
             "added": self.added,
         }
 
 
-@attr.s
-class ZabbixScaleFunction(object):
+@attr.s(auto_attribs=True)
+class ZabbixScaleFunction:
     """ZabbixScaleFunction
 
     Takes timeseries and multiplies each point by the given factor.
@@ -243,8 +186,8 @@ class ZabbixScaleFunction(object):
 
     _default_factor = 100
 
-    added = attr.ib(default=False, validator=instance_of(bool))
-    factor = attr.ib(default=_default_factor, validator=instance_of(Number))
+    added: bool = False
+    factor: float = _default_factor
 
     def to_json_data(self):
         text = "scale({factor})"
@@ -252,10 +195,7 @@ class ZabbixScaleFunction(object):
             "category": "Transform",
             "name": "scale",
             "defaultParams": [self._default_factor],
-            "params": [
-                {"name": "factor",
-                 "options": [100, 0.01, 10, -1],
-                 "type": "float"}]
+            "params": [{"name": "factor", "options": [100, 0.01, 10, -1], "type": "float"}],
         }
         return {
             "def": definition,
@@ -266,7 +206,7 @@ class ZabbixScaleFunction(object):
 
 
 @attr.s
-class ZabbixAggregateByFunction(object):
+class ZabbixAggregateByFunction:
     """ZabbixAggregateByFunction
 
     Takes all timeseries and consolidate all its points falled in given
@@ -281,35 +221,29 @@ class ZabbixAggregateByFunction(object):
 
     added = attr.ib(default=False, validator=instance_of(bool))
     interval = attr.ib(default=_default_interval, validator=is_interval)
-    function = attr.ib(default=_default_function,
-                       validator=is_in(_options))
+    function = attr.ib(default=_default_function, validator=in_(_options))
 
     def to_json_data(self):
         text = "aggregateBy({interval}, {function})"
         definition = {
             "category": "Aggregate",
             "name": "aggregateBy",
-            "defaultParams": [
-                self._default_interval,
-                self._default_function,
-            ],
+            "defaultParams": [self._default_interval, self._default_function],
             "params": [
-                {"name": "interval",
-                 "type": "string"},
-                {"name": "function",
-                 "options": self._options,
-                 "type": "string"}]}
+                {"name": "interval", "type": "string"},
+                {"name": "function", "options": self._options, "type": "string"},
+            ],
+        }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval, function=self.function),
+            "text": text.format(interval=self.interval, function=self.function),
             "params": [self.interval, self.function],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixAverageFunction(object):
+class ZabbixAverageFunction:
     """ZabbixAverageFunction
 
     Deprecated, use aggregateBy(interval, avg) instead.
@@ -326,24 +260,19 @@ class ZabbixAverageFunction(object):
         definition = {
             "category": "Aggregate",
             "name": "average",
-            "defaultParams": [
-                self._default_interval,
-            ],
-            "params": [
-                {"name": "interval",
-                 "type": "string"}]
+            "defaultParams": [self._default_interval],
+            "params": [{"name": "interval", "type": "string"}],
         }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval),
+            "text": text.format(interval=self.interval),
             "params": [self.interval],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixMaxFunction(object):
+class ZabbixMaxFunction:
     """ZabbixMaxFunction
 
     Deprecated, use aggregateBy(interval, max) instead.
@@ -360,24 +289,19 @@ class ZabbixMaxFunction(object):
         definition = {
             "category": "Aggregate",
             "name": "max",
-            "defaultParams": [
-                self._default_interval,
-            ],
-            "params": [
-                {"name": "interval",
-                 "type": "string"}]
+            "defaultParams": [self._default_interval],
+            "params": [{"name": "interval", "type": "string"}],
         }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval),
+            "text": text.format(interval=self.interval),
             "params": [self.interval],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixMedianFunction(object):
+class ZabbixMedianFunction:
     """ZabbixMedianFunction
 
     Deprecated, use aggregateBy(interval, median) instead.
@@ -394,24 +318,19 @@ class ZabbixMedianFunction(object):
         definition = {
             "category": "Aggregate",
             "name": "median",
-            "defaultParams": [
-                self._default_interval,
-            ],
-            "params": [
-                {"name": "interval",
-                 "type": "string"}]
+            "defaultParams": [self._default_interval],
+            "params": [{"name": "interval", "type": "string"}],
         }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval),
+            "text": text.format(interval=self.interval),
             "params": [self.interval],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixMinFunction(object):
+class ZabbixMinFunction:
     """ZabbixMinFunction
 
     Deprecated, use aggregateBy(interval, min) instead.
@@ -428,24 +347,19 @@ class ZabbixMinFunction(object):
         definition = {
             "category": "Aggregate",
             "name": "min",
-            "defaultParams": [
-                self._default_interval,
-            ],
-            "params": [
-                {"name": "interval",
-                 "type": "string"}]
+            "defaultParams": [self._default_interval],
+            "params": [{"name": "interval", "type": "string"}],
         }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval),
+            "text": text.format(interval=self.interval),
             "params": [self.interval],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixSumSeriesFunction(object):
+class ZabbixSumSeriesFunction:
     """ZabbixSumSeriesFunction
 
     This will add metrics together and return the sum at each datapoint.
@@ -454,6 +368,7 @@ class ZabbixSumSeriesFunction(object):
     Try to combine it with groupBy() function to reduce load.
     http://docs.grafana-zabbix.org/reference/functions/#sumSeries
     """
+
     added = attr.ib(default=False)
 
     def to_json_data(self):
@@ -462,17 +377,13 @@ class ZabbixSumSeriesFunction(object):
             "category": "Aggregate",
             "name": "sumSeries",
             "defaultParams": [],
-            "params": []}
-        return {
-            "added": self.added,
-            "text": text,
-            "def": definition,
             "params": [],
         }
+        return {"added": self.added, "text": text, "def": definition, "params": []}
 
 
 @attr.s
-class ZabbixBottomFunction(object):
+class ZabbixBottomFunction:
 
     _options = ("avg", "min", "max", "median")
     _default_number = 5
@@ -480,35 +391,29 @@ class ZabbixBottomFunction(object):
 
     added = attr.ib(default=False, validator=instance_of(bool))
     number = attr.ib(default=_default_number, validator=instance_of(int))
-    function = attr.ib(default=_default_function,
-                       validator=is_in(_options))
+    function = attr.ib(default=_default_function, validator=in_(_options))
 
     def to_json_data(self):
         text = "bottom({number}, {function})"
         definition = {
             "category": "Filter",
             "name": "bottom",
-            "defaultParams": [
-                self._default_number,
-                self._default_function,
-            ],
+            "defaultParams": [self._default_number, self._default_function],
             "params": [
-                {"name": "number",
-                 "type": "string"},
-                {"name": "function",
-                 "options": self._options,
-                 "type": "string"}]}
+                {"name": "number", "type": "string"},
+                {"name": "function", "options": self._options, "type": "string"},
+            ],
+        }
         return {
             "def": definition,
-            "text": text.format(
-                number=self.number, function=self.function),
+            "text": text.format(number=self.number, function=self.function),
             "params": [self.number, self.function],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixTopFunction(object):
+class ZabbixTopFunction:
 
     _options = ("avg", "min", "max", "median")
     _default_number = 5
@@ -516,35 +421,29 @@ class ZabbixTopFunction(object):
 
     added = attr.ib(default=False, validator=instance_of(bool))
     number = attr.ib(default=_default_number, validator=instance_of(int))
-    function = attr.ib(default=_default_function,
-                       validator=is_in(_options))
+    function = attr.ib(default=_default_function, validator=in_(_options))
 
     def to_json_data(self):
         text = "top({number}, {function})"
         definition = {
             "category": "Filter",
             "name": "top",
-            "defaultParams": [
-                self._default_number,
-                self._default_function,
-            ],
+            "defaultParams": [self._default_number, self._default_function],
             "params": [
-                {"name": "number",
-                 "type": "string"},
-                {"name": "function",
-                 "options": self._options,
-                 "type": "string"}]}
+                {"name": "number", "type": "string"},
+                {"name": "function", "options": self._options, "type": "string"},
+            ],
+        }
         return {
             "def": definition,
-            "text": text.format(
-                number=self.number, function=self.function),
+            "text": text.format(number=self.number, function=self.function),
             "params": [self.number, self.function],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixTrendValueFunction(object):
+class ZabbixTrendValueFunction:
     """ZabbixTrendValueFunction
 
     Specifying type of trend value returned by Zabbix when
@@ -552,35 +451,29 @@ class ZabbixTrendValueFunction(object):
     http://docs.grafana-zabbix.org/reference/functions/#trendValue
     """
 
-    _options = ('avg', 'min', 'max')
+    _options = ("avg", "min", "max")
     _default_type = "avg"
     added = attr.ib(default=False, validator=instance_of(bool))
-    type = attr.ib(default=_default_type,
-                   validator=is_in(_options))
+    type = attr.ib(default=_default_type, validator=in_(_options))
 
     def to_json_data(self):
         text = "trendValue({type})"
         definition = {
             "category": "Trends",
             "name": "trendValue",
-            "defaultParams": [
-                self._default_type,
-            ],
-            "params": [
-                {"name": "type",
-                 "options": self._options,
-                 "type": "string"}]}
+            "defaultParams": [self._default_type],
+            "params": [{"name": "type", "options": self._options, "type": "string"}],
+        }
         return {
             "def": definition,
-            "text": text.format(
-                type=self.type),
+            "text": text.format(type=self.type),
             "params": [self.type],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixTimeShiftFunction(object):
+class ZabbixTimeShiftFunction:
     """ZabbixTimeShiftFunction
 
     Draws the selected metrics shifted in time.
@@ -601,29 +494,25 @@ class ZabbixTimeShiftFunction(object):
         definition = {
             "category": "Time",
             "name": "timeShift",
-            "defaultParams": [
-                self._default_interval,
-            ],
-            "params": [
-                {"name": "interval",
-                 "options": self._options,
-                 "type": "string"}]}
+            "defaultParams": [self._default_interval],
+            "params": [{"name": "interval", "options": self._options, "type": "string"}],
+        }
         return {
             "def": definition,
-            "text": text.format(
-                interval=self.interval),
+            "text": text.format(interval=self.interval),
             "params": [self.interval],
             "added": self.added,
         }
 
 
 @attr.s
-class ZabbixSetAliasFunction(object):
+class ZabbixSetAliasFunction:
     """ZabbixSetAliasFunction
 
     Returns given alias instead of the metric name.
     http://docs.grafana-zabbix.org/reference/functions/#setAlias
     """
+
     alias = attr.ib(validator=instance_of(str))
     added = attr.ib(default=False, validator=instance_of(bool))
 
@@ -633,9 +522,8 @@ class ZabbixSetAliasFunction(object):
             "category": "Alias",
             "name": "setAlias",
             "defaultParams": [],
-            "params": [
-                {"name": "alias",
-                 "type": "string"}]}
+            "params": [{"name": "alias", "type": "string"}],
+        }
         return {
             "def": definition,
             "text": text.format(alias=self.alias),
@@ -645,7 +533,7 @@ class ZabbixSetAliasFunction(object):
 
 
 @attr.s
-class ZabbixSetAliasByRegexFunction(object):
+class ZabbixSetAliasByRegexFunction:
     """ZabbixSetAliasByRegexFunction
 
     Returns part of the metric name matched by regex.
@@ -661,9 +549,8 @@ class ZabbixSetAliasByRegexFunction(object):
             "category": "Alias",
             "name": "setAliasByRegex",
             "defaultParams": [],
-            "params": [
-                {"name": "aliasByRegex",
-                 "type": "string"}]}
+            "params": [{"name": "aliasByRegex", "type": "string"}],
+        }
         return {
             "def": definition,
             "text": text.format(regexp=self.regexp),
@@ -672,7 +559,8 @@ class ZabbixSetAliasByRegexFunction(object):
         }
 
 
-def zabbixMetricTarget(application, group, host, item, functions=[]):
+def zabbixMetricTarget(application, group, host, item, functions=None):
+    functions = functions if functions else []
     return ZabbixTarget(
         mode=ZABBIX_QMODE_METRICS,
         application=application,
@@ -683,16 +571,13 @@ def zabbixMetricTarget(application, group, host, item, functions=[]):
     )
 
 
-def zabbixServiceTarget(service, sla=ZABBIX_SLA_PROP_STATUS):
-    return ZabbixTarget(
-        mode=ZABBIX_QMODE_SERVICES,
-        itService=service,
-        slaProperty=sla,
-    )
+def zabbixServiceTarget(service, sla=None):
+    if sla is None:
+        sla = ZABBIX_SLA_PROP_STATUS
+    return ZabbixTarget(mode=ZABBIX_QMODE_SERVICES, itService=service, slaProperty=sla)
 
 
-def zabbixTextTarget(application, group, host, item, text,
-                     useCaptureGroups=False):
+def zabbixTextTarget(application, group, host, item, text, useCaptureGroups=False):
     return ZabbixTarget(
         mode=ZABBIX_QMODE_TEXT,
         application=application,
@@ -705,7 +590,7 @@ def zabbixTextTarget(application, group, host, item, text,
 
 
 @attr.s
-class ZabbixColor(object):
+class ZabbixColor:
     color = attr.ib(validator=is_color_code)
     priority = attr.ib(validator=instance_of(int))
     severity = attr.ib(validator=instance_of(str))
@@ -720,8 +605,31 @@ class ZabbixColor(object):
         }
 
 
+def convertZabbixSeverityColors(colors: List[Tuple[str, str]]) -> List[ZabbixColor]:
+    zabbix_colors = []
+    for priority, item in enumerate(colors):
+        if isinstance(item, ZabbixColor):
+            zabbix_colors.append(item)
+        else:
+            c, s = item
+            zabbix_colors.append(ZabbixColor(color=c, priority=priority, severity=s))
+    return zabbix_colors
+
+
+ZABBIX_SEVERITY_COLORS = convertZabbixSeverityColors(
+    [
+        ("#B7DBAB", "Not classified"),
+        ("#82B5D8", "Information"),
+        ("#E5AC0E", "Warning"),
+        ("#C15C17", "Average"),
+        ("#BF1B00", "High"),
+        ("#890F02", "Disaster"),
+    ]
+)
+
+
 @attr.s
-class ZabbixTrigger(object):
+class ZabbixTrigger:
 
     application = attr.ib(default="", validator=instance_of(str))
     group = attr.ib(default="", validator=instance_of(str))
@@ -738,7 +646,7 @@ class ZabbixTrigger(object):
 
 
 @attr.s
-class ZabbixTriggersPanel(object):
+class ZabbixTriggersPanel:
     """ZabbixTriggersPanel
 
     :param dataSource: query datasource name
@@ -779,20 +687,17 @@ class ZabbixTriggersPanel(object):
     :param triggers: trigger query
 
     """
+
     dataSource = attr.ib()
     title = attr.ib()
 
-    ackEventColor = attr.ib(default=attr.Factory(lambda: BLANK),
-                            validator=instance_of(RGBA))
+    ackEventColor = attr.ib(default=attr.Factory(lambda: BLANK), validator=instance_of(RGBA))
     ageField = attr.ib(default=True, validator=instance_of(bool))
-    customLastChangeFormat = attr.ib(default=False,
-                                     validator=instance_of(bool))
+    customLastChangeFormat = attr.ib(default=False, validator=instance_of(bool))
     description = attr.ib(default="", validator=instance_of(str))
-    fontSize = attr.ib(default=attr.Factory(Percent),
-                       validator=instance_of(Percent))
+    fontSize = attr.ib(default=attr.Factory(Percent), validator=instance_of(Percent))
     height = attr.ib(default=DEFAULT_ROW_HEIGHT, validator=instance_of(Pixels))
-    hideHostsInMaintenance = attr.ib(default=False,
-                                     validator=instance_of(bool))
+    hideHostsInMaintenance = attr.ib(default=False, validator=instance_of(bool))
     hostField = attr.ib(default=True, validator=instance_of(bool))
     hostTechNameField = attr.ib(default=False, validator=instance_of(bool))
     id = attr.ib(default=None)
@@ -801,32 +706,22 @@ class ZabbixTriggersPanel(object):
 
     lastChangeFormat = attr.ib(default="")
     limit = attr.ib(default=10, validator=instance_of(int))
-    links = attr.ib(default=attr.Factory(list),
-                    validator=is_list_of(DashboardLink))
+    links = attr.ib(default=attr.Factory(list), validator=is_list_of(DashboardLink))
     markAckEvents = attr.ib(default=False, validator=instance_of(bool))
     minSpan = attr.ib(default=None)
-    okEventColor = attr.ib(default=attr.Factory(lambda: GREEN),
-                           validator=instance_of(RGBA))
+    okEventColor = attr.ib(default=attr.Factory(lambda: GREEN), validator=instance_of(RGBA))
     pageSize = attr.ib(default=10, validator=instance_of(int))
     repeat = attr.ib(default=None)
     scroll = attr.ib(default=True, validator=instance_of(bool))
     severityField = attr.ib(default=False, validator=instance_of(bool))
     showEvents = attr.ib(default=attr.Factory(lambda: ZABBIX_EVENT_PROBLEMS))
     showTriggers = attr.ib(default=ZABBIX_TRIGGERS_SHOW_ALL)
-    sortTriggersBy = attr.ib(
-        default=attr.Factory(lambda: ZABBIX_SORT_TRIGGERS_BY_CHANGE),
-    )
+    sortTriggersBy = attr.ib(default=attr.Factory(lambda: ZABBIX_SORT_TRIGGERS_BY_CHANGE))
     span = attr.ib(default=None)
     statusField = attr.ib(default=False, validator=instance_of(bool))
     transparent = attr.ib(default=False, validator=instance_of(bool))
-    triggerSeverity = attr.ib(
-        default=ZABBIX_SEVERITY_COLORS,
-        convert=convertZabbixSeverityColors,
-    )
-    triggers = attr.ib(
-        default=attr.Factory(ZabbixTrigger),
-        validator=instance_of(ZabbixTrigger),
-    )
+    triggerSeverity = attr.ib(default=ZABBIX_SEVERITY_COLORS, converter=convertZabbixSeverityColors)
+    triggers = attr.ib(default=attr.Factory(ZabbixTrigger), validator=instance_of(ZabbixTrigger))
 
     def to_json_data(self):
         return {

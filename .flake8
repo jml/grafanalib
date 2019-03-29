@@ -1,0 +1,16 @@
+[flake8]
+# General policy is that if it's caused by `black`, we're OK with it.
+ignore =
+    # We ignore line-length warnings because `black` already correctly wraps all
+    # of our long lines *except* for those that contain very long string literals
+    # (esp. URLs in doctstring or comments). We like our URLs unwrapped, so we are
+    # perfectly content to have a blanket policy ignoring whatever long lines
+    # survive `black`.
+    E501,
+    # `black` turns `foo[x:y]` into `foo[x : y]`, presumably because every
+    # opinionated auto-formatter has to make at least one egregiously bad
+    # decision.
+    E203
+    # Maintaining a preference for line break after binary operators to match Black
+    # config or settings
+    W503

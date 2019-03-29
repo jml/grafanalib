@@ -1,13 +1,11 @@
 """Tests for OpenTSDB datasource"""
 
-import grafanalib.core as G
-from grafanalib.opentsdb import (
-    OpenTSDBFilter,
-    OpenTSDBTarget,
-)
-from grafanalib import _gen
-
 import sys
+
+import grafanalib.core as G
+from grafanalib import _gen
+from grafanalib.opentsdb import OpenTSDBFilter, OpenTSDBTarget
+
 if sys.version_info[0] < 3:
     from io import BytesIO as StringIO
 else:
@@ -21,12 +19,10 @@ def test_serialization_opentsdb_target():
         dataSource="OpenTSDB data source",
         targets=[
             OpenTSDBTarget(
-                metric='cpu',
-                alias='$tag_instance',
-                filters=[
-                    OpenTSDBFilter(value='*', tag='instance',
-                                   type='wildcard', groupBy=True),
-                ]),
+                metric="cpu",
+                alias="$tag_instance",
+                filters=[OpenTSDBFilter(value="*", tag="instance", type="wildcard", groupBy=True)],
+            )
         ],
         id=1,
         yAxes=[
@@ -36,4 +32,4 @@ def test_serialization_opentsdb_target():
     )
     stream = StringIO()
     _gen.write_dashboard(graph, stream)
-    assert stream.getvalue() != ''
+    assert stream.getvalue() != ""

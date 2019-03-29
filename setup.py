@@ -1,28 +1,39 @@
+"""Install grafanalib."""
+# pylint: skip-file
 import os
-from setuptools import setup, find_packages
+
+import setuptools
 
 
 def local_file(name):
     return os.path.relpath(os.path.join(os.path.dirname(__file__), name))
 
 
-README = local_file("README.rst")
 SOURCE = local_file("src")
+README = local_file("README.rst")
 
+setuptools_version = tuple(map(int, setuptools.__version__.split(".")[:2]))
 
-setup(
+# Assignment to placate pyflakes. The actual version is from the exec that
+# follows.
+__version__ = None
+
+with open(local_file("src/grafanalib/version.py")) as o:
+    exec(o.read())
+
+setuptools.setup(
     name="grafanalib",
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version="0.5.2",
+    version=__version__,
     description="Library for building Grafana dashboards",
     long_description=open(README).read(),
-    url="https://github.com/weaveworks/grafanalib",
-    author="Weaveworks",
-    author_email="help+grafanalib@weave.works",
+    url="https://github.com/jml/grafanalib",
+    author="Jonathan M. Lange",
+    author_email="jml@mumak.net",
     license="Apache",
-    packages=find_packages(),
+    packages=setuptools.find_packages(),
     package_dir={"": SOURCE},
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -35,7 +46,7 @@ setup(
         "Topic :: System :: Monitoring",
     ],
     install_requires=["attrs"],
-    extras_require={"dev": ["flake8", "pytest"]},
+    python_requires=">=3.7",
     entry_points={
         "console_scripts": [
             "generate-dashboard=grafanalib._gen:generate_dashboard_script",

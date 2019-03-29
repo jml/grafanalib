@@ -19,20 +19,16 @@ def PromGraph(data_source, title, expressions, **kwargs):
     expressions = list(expressions)
     if len(expressions) > len(letters):
         raise ValueError(
-            'Too many expressions. Can support at most {}, but got {}'.format(
-                len(letters), len(expressions)))
+            "Too many expressions. Can support at most {}, but got {}".format(
+                len(letters), len(expressions)
+            )
+        )
 
     if all(isinstance(expr, dict) for expr in expressions):
-        targets = [
-            G.Target(refId=refId, **args)
-            for (args, refId) in zip(expressions, letters)]
+        targets = [G.Target(refId=refId, **args) for (args, refId) in zip(expressions, letters)]
     else:
         targets = [
             G.Target(expr=expr, legendFormat=legend, refId=refId)
-            for ((legend, expr), refId) in zip(expressions, letters)]
-    return G.Graph(
-        title=title,
-        dataSource=data_source,
-        targets=targets,
-        **kwargs
-    )
+            for ((legend, expr), refId) in zip(expressions, letters)
+        ]
+    return G.Graph(title=title, dataSource=data_source, targets=targets, **kwargs)

@@ -1,5 +1,13 @@
 [run]
 branch = True
-include =
-    grafanalib/*.py
-    grafanalib/**/*.py
+source =
+    src
+    tests
+omit=
+    **/__main__.py
+
+[report]
+# Exclude AssertionError because we use it to mean "this cannot happen".
+exclude_lines =
+    AssertionError
+    pragma: nocover

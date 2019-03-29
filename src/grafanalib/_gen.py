@@ -6,8 +6,7 @@ import json
 import os
 import sys
 
-
-DASHBOARD_SUFFIX = '.dashboard.py'
+DASHBOARD_SUFFIX = ".dashboard.py"
 
 
 class DashboardError(Exception):
@@ -23,28 +22,25 @@ def load_dashboard(path):
     """
     module = imp.load_source("dashboard", path)
     marker = object()
-    dashboard = getattr(module, 'dashboard', marker)
+    dashboard = getattr(module, "dashboard", marker)
     if dashboard is marker:
-        raise DashboardError(
-            "Dashboard definition {} does not define 'dashboard'".format(path))
+        raise DashboardError("Dashboard definition {} does not define 'dashboard'".format(path))
     return dashboard
 
 
 class DashboardEncoder(json.JSONEncoder):
     """Encode dashboard objects."""
 
-    def default(self, obj):
-        to_json_data = getattr(obj, 'to_json_data', None)
+    def default(self, o):  # pylint: disable=method-hidden
+        to_json_data = getattr(o, "to_json_data", None)
         if to_json_data:
             return to_json_data()
-        return json.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, o)
 
 
 def write_dashboard(dashboard, stream):
-    json.dump(
-        dashboard.to_json_data(), stream, sort_keys=True, indent=2,
-        cls=DashboardEncoder)
-    stream.write('\n')
+    json.dump(dashboard.to_json_data(), stream, sort_keys=True, indent=2, cls=DashboardEncoder)
+    stream.write("\n")
 
 
 def print_dashboard(dashboard):
@@ -54,49 +50,50 @@ def print_dashboard(dashboard):
 def write_dashboards(paths):
     for path in paths:
         dashboard = load_dashboard(path)
-        with open(get_json_path(path), 'w') as json_file:
+        with open(get_json_path(path), "w") as json_file:
             write_dashboard(dashboard, json_file)
 
 
 def get_json_path(path):
     assert path.endswith(DASHBOARD_SUFFIX)
-    return '{}.json'.format(path[:-len(DASHBOARD_SUFFIX)])
+    return "{}.json".format(path[: -len(DASHBOARD_SUFFIX)])
 
 
 def dashboard_path(path):
     abspath = os.path.abspath(path)
     if not abspath.endswith(DASHBOARD_SUFFIX):
         raise argparse.ArgumentTypeError(
-            'Dashboard file {} does not end with {}'.format(
-                path, DASHBOARD_SUFFIX))
+            "Dashboard file {} does not end with {}".format(path, DASHBOARD_SUFFIX)
+        )
     return abspath
 
 
 def generate_dashboards(args):
     """Script for generating multiple dashboards at a time."""
-    parser = argparse.ArgumentParser(prog='generate-dashboards')
+    parser = argparse.ArgumentParser(prog="generate-dashboards")
     parser.add_argument(
-        'dashboards', metavar='DASHBOARD', type=os.path.abspath,
-        nargs='+', help='Path to dashboard definition',
+        "dashboards",
+        metavar="DASHBOARD",
+        type=os.path.abspath,
+        nargs="+",
+        help="Path to dashboard definition",
     )
     opts = parser.parse_args(args)
     try:
         write_dashboards(opts.dashboards)
     except DashboardError as e:
-        sys.stderr.write('ERROR: {}\n'.format(e))
+        sys.stderr.write("ERROR: {}\n".format(e))
         return 1
     return 0
 
 
 def generate_dashboard(args):
-    parser = argparse.ArgumentParser(prog='generate-dashboard')
+    parser = argparse.ArgumentParser(prog="generate-dashboard")
     parser.add_argument(
-        '--output', '-o', type=os.path.abspath,
-        help='Where to write the dashboard JSON'
+        "--output", "-o", type=os.path.abspath, help="Where to write the dashboard JSON"
     )
     parser.add_argument(
-        'dashboard', metavar='DASHBOARD', type=os.path.abspath,
-        help='Path to dashboard definition',
+        "dashboard", metavar="DASHBOARD", type=os.path.abspath, help="Path to dashboard definition"
     )
     opts = parser.parse_args(args)
     try:
@@ -104,10 +101,10 @@ def generate_dashboard(args):
         if not opts.output:
             print_dashboard(dashboard)
         else:
-            with open(opts.output, 'w') as output:
+            with open(opts.output, "w") as output:
                 write_dashboard(dashboard, output)
     except DashboardError as e:
-        sys.stderr.write('ERROR: {}\n'.format(e))
+        sys.stderr.write("ERROR: {}\n".format(e))
         return 1
     return 0
 

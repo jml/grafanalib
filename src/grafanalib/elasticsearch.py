@@ -1,7 +1,8 @@
 """Helpers to create Elasticsearch-specific Grafana queries."""
 
-import attr
 import itertools
+
+import attr
 from attr.validators import instance_of
 
 DATE_HISTOGRAM_DEFAULT_FIELD = "time_iso8601"
@@ -10,41 +11,35 @@ ORDER_DESC = "desc"
 
 
 @attr.s
-class CountMetricAgg(object):
+class CountMetricAgg:
     """An aggregator that counts the number of values.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-valuecount-aggregation.html
 
     It's the default aggregator for elasticsearch queries.
     """
-    def to_json_data(self):
-        return {
-            'type': 'count',
-            'field': 'select field',
-            'settings': {},
-        }
+
+    def to_json_data(self):  # pylint: disable=no-self-use
+        return {"type": "count", "field": "select field", "settings": {}}
 
 
 @attr.s
-class MaxMetricAgg(object):
+class MaxMetricAgg:
     """An aggregator that provides the max. value among the values.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-max-aggregation.html
 
     :param field: name of elasticsearch field to provide the maximum for
     """
+
     field = attr.ib(default="", validator=instance_of(str))
 
     def to_json_data(self):
-        return {
-            'type': 'max',
-            'field': self.field,
-            'settings': {},
-        }
+        return {"type": "max", "field": self.field, "settings": {}}
 
 
 @attr.s
-class DateHistogramGroupBy(object):
+class DateHistogramGroupBy:
     """A bucket aggregator that groups results by date.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html
@@ -55,29 +50,27 @@ class DateHistogramGroupBy(object):
     :param minDocCount: min. amount of records in the timespan to return a
                         result
     """
+
     id = attr.ib(default=0, validator=instance_of(int))
-    field = attr.ib(
-        default=DATE_HISTOGRAM_DEFAULT_FIELD,
-        validator=instance_of(str),
-    )
+    field = attr.ib(default=DATE_HISTOGRAM_DEFAULT_FIELD, validator=instance_of(str))
     interval = attr.ib(default="auto", validator=instance_of(str))
     minDocCount = attr.ib(default=0, validator=instance_of(int))
 
     def to_json_data(self):
         return {
-            'field': self.field,
-            'id': str(self.id),
-            'settings': {
-                'interval': self.interval,
-                'min_doc_count': self.minDocCount,
-                'trimEdges': 0,
+            "field": self.field,
+            "id": str(self.id),
+            "settings": {
+                "interval": self.interval,
+                "min_doc_count": self.minDocCount,
+                "trimEdges": 0,
             },
-            'type': 'date_histogram',
+            "type": "date_histogram",
         }
 
 
 @attr.s
-class Filter(object):
+class Filter:
     """ A Filter for a FilterGroupBy aggregator.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-filter-aggregation.html
@@ -85,18 +78,16 @@ class Filter(object):
     :param label: label for the metric that is shown in the graph
     :param query: the query to filter by
     """
+
     label = attr.ib(default="", validator=instance_of(str))
     query = attr.ib(default="", validator=instance_of(str))
 
     def to_json_data(self):
-        return {
-                'label': self.label,
-                'query': self.query,
-                }
+        return {"label": self.label, "query": self.query}
 
 
 @attr.s
-class FiltersGroupBy(object):
+class FiltersGroupBy:
     """ A bucket aggregator that groups records by a filter expression.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-filter-aggregation.html
@@ -104,21 +95,16 @@ class FiltersGroupBy(object):
     :param id: ascending unique number per GroupBy clause
     :param filters: list of Filter objects
     """
+
     id = attr.ib(default=0, validator=instance_of(int))
     filters = attr.ib(default=attr.Factory(list))
 
     def to_json_data(self):
-        return {
-                'id': str(self.id),
-                'settings': {
-                             'filters': self.filters,
-                             },
-                'type': 'filters',
-                }
+        return {"id": str(self.id), "settings": {"filters": self.filters}, "type": "filters"}
 
 
 @attr.s
-class TermsGroupBy(object):
+class TermsGroupBy:
     """ A multi-bucket aggregator based on field values.
 
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html
@@ -130,6 +116,7 @@ class TermsGroupBy(object):
     :param orderBy: term to order the bucker
     :param size: how many buckets are returned
     """
+
     field = attr.ib(validator=instance_of(str))
     id = attr.ib(default=0, validator=instance_of(int))
     minDocCount = attr.ib(default=1, validator=instance_of(int))
@@ -139,20 +126,20 @@ class TermsGroupBy(object):
 
     def to_json_data(self):
         return {
-            'id': str(self.id),
-            'type': 'terms',
-            'field': self.field,
-            'settings': {
-                'min_doc_count': self.minDocCount,
-                'order': self.order,
-                'order_by': self.orderBy,
-                'size': self.size,
+            "id": str(self.id),
+            "type": "terms",
+            "field": self.field,
+            "settings": {
+                "min_doc_count": self.minDocCount,
+                "order": self.order,
+                "order_by": self.orderBy,
+                "size": self.size,
             },
         }
 
 
 @attr.s
-class ElasticsearchTarget(object):
+class ElasticsearchTarget:
     """Generates Elasticsearch target JSON structure.
 
     Grafana docs on using Elasticsearch:
@@ -168,9 +155,7 @@ class ElasticsearchTarget(object):
     """
 
     alias = attr.ib(default=None)
-    bucketAggs = attr.ib(
-        default=attr.Factory(lambda: [DateHistogramGroupBy()]),
-    )
+    bucketAggs = attr.ib(default=attr.Factory(lambda: [DateHistogramGroupBy()]))
     metricAggs = attr.ib(default=attr.Factory(lambda: [CountMetricAgg()]))
     query = attr.ib(default="", validator=instance_of(str))
     refId = attr.ib(default="", validator=instance_of(str))
@@ -189,7 +174,7 @@ class ElasticsearchTarget(object):
         If the bucketAggs don't have unique ID associated with it, the
         generated graph will be broken.
         """
-        ids = set([agg.id for agg in self.bucketAggs if agg.id])
+        ids = {agg.id for agg in self.bucketAggs if agg.id}
         auto_ids = (i for i in itertools.count(1) if i not in ids)
 
         def set_id(agg):
@@ -202,9 +187,9 @@ class ElasticsearchTarget(object):
 
     def to_json_data(self):
         return {
-            'alias': self.alias,
-            'bucketAggs': self.bucketAggs,
-            'metrics': self.metricAggs,
-            'query': self.query,
-            'refId': self.refId,
+            "alias": self.alias,
+            "bucketAggs": self.bucketAggs,
+            "metrics": self.metricAggs,
+            "query": self.query,
+            "refId": self.refId,
         }

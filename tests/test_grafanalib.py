@@ -1,9 +1,10 @@
 """Tests for Grafanalib."""
 
+import sys
+
 import grafanalib.core as G
 from grafanalib import _gen
 
-import sys
 if sys.version_info[0] < 3:
     from io import BytesIO as StringIO
 else:
@@ -19,10 +20,10 @@ def test_serialization():
         dataSource="My data source",
         targets=[
             G.Target(
-                expr='namespace:container_cpu_usage_seconds_total:sum_rate',
-                legendFormat='{{namespace}}',
-                refId='A',
-            ),
+                expr="namespace:container_cpu_usage_seconds_total:sum_rate",
+                legendFormat="{{namespace}}",
+                refId="A",
+            )
         ],
         id=1,
         yAxes=[
@@ -32,7 +33,7 @@ def test_serialization():
     )
     stream = StringIO()
     _gen.write_dashboard(graph, stream)
-    assert stream.getvalue() != ''
+    assert stream.getvalue() != ""
 
 
 def test_auto_id():
@@ -40,23 +41,21 @@ def test_auto_id():
     dashboard = G.Dashboard(
         title="Test dashboard",
         rows=[
-            G.Row(panels=[
-                G.Graph(
-                    title="CPU Usage by Namespace (rate[5m])",
-                    dataSource="My data source",
-                    targets=[
-                        G.Target(
-                            expr='whatever',
-                            legendFormat='{{namespace}}',
-                            refId='A',
-                        ),
-                    ],
-                    yAxes=[
-                        G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds"),
-                        G.YAxis(format=G.SHORT_FORMAT),
-                    ],
-                )
-            ]),
+            G.Row(
+                panels=[
+                    G.Graph(
+                        title="CPU Usage by Namespace (rate[5m])",
+                        dataSource="My data source",
+                        targets=[
+                            G.Target(expr="whatever", legendFormat="{{namespace}}", refId="A")
+                        ],
+                        yAxes=[
+                            G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds"),
+                            G.YAxis(format=G.SHORT_FORMAT),
+                        ],
+                    )
+                ]
+            )
         ],
     ).auto_panel_ids()
     assert dashboard.rows[0].panels[0].id == 1
@@ -64,13 +63,13 @@ def test_auto_id():
 
 def test_row_show_title():
     row = G.Row().to_json_data()
-    assert row['title'] == 'New row'
-    assert not row['showTitle']
+    assert row["title"] == "New row"
+    assert not row["showTitle"]
 
-    row = G.Row(title='My title').to_json_data()
-    assert row['title'] == 'My title'
-    assert row['showTitle']
+    row = G.Row(title="My title").to_json_data()
+    assert row["title"] == "My title"
+    assert row["showTitle"]
 
-    row = G.Row(title='My title', showTitle=False).to_json_data()
-    assert row['title'] == 'My title'
-    assert not row['showTitle']
+    row = G.Row(title="My title", showTitle=False).to_json_data()
+    assert row["title"] == "My title"
+    assert not row["showTitle"]

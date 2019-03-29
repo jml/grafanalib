@@ -5,16 +5,17 @@ encourage it by way of some defaults. Rather, they are ways of building
 arbitrary Grafana JSON.
 """
 
-import attr
-from attr.validators import instance_of, in_
 import itertools
 import math
-from numbers import Number
 import warnings
+from typing import Any, List, Tuple, Union
+
+import attr
+from attr.validators import in_, instance_of
 
 
 @attr.s
-class RGBA(object):
+class RGBA:
     r = attr.ib(validator=instance_of(int))
     g = attr.ib(validator=instance_of(int))
     b = attr.ib(validator=instance_of(int))
@@ -25,7 +26,7 @@ class RGBA(object):
 
 
 @attr.s
-class RGB(object):
+class RGB:
     r = attr.ib(validator=instance_of(int))
     g = attr.ib(validator=instance_of(int))
     b = attr.ib(validator=instance_of(int))
@@ -35,19 +36,19 @@ class RGB(object):
 
 
 @attr.s
-class Pixels(object):
+class Pixels:
     num = attr.ib(validator=instance_of(int))
 
     def to_json_data(self):
-        return '{}px'.format(self.num)
+        return "{}px".format(self.num)
 
 
-@attr.s
-class Percent(object):
-    num = attr.ib(default=100, validator=instance_of(Number))
+@attr.s(auto_attribs=True)
+class Percent:
+    num: float = 100.0
 
     def to_json_data(self):
-        return '{}%'.format(self.num)
+        return "{}%".format(self.num)
 
 
 GREY1 = RGBA(216, 200, 27, 0.27)
@@ -59,25 +60,25 @@ ORANGE = RGBA(237, 129, 40, 0.89)
 RED = RGBA(245, 54, 54, 0.9)
 BLANK = RGBA(0, 0, 0, 0.0)
 
-INDIVIDUAL = 'individual'
-CUMULATIVE = 'cumulative'
+INDIVIDUAL = "individual"
+CUMULATIVE = "cumulative"
 
-NULL_CONNECTED = 'connected'
-NULL_AS_ZERO = 'null as zero'
-NULL_AS_NULL = 'null'
+NULL_CONNECTED = "connected"
+NULL_AS_ZERO = "null as zero"
+NULL_AS_NULL = "null"
 
-FLOT = 'flot'
+FLOT = "flot"
 
-ABSOLUTE_TYPE = 'absolute'
-DASHBOARD_TYPE = 'dashboard'
-GRAPH_TYPE = 'graph'
-SINGLESTAT_TYPE = 'singlestat'
-TABLE_TYPE = 'table'
-TEXT_TYPE = 'text'
+ABSOLUTE_TYPE = "absolute"
+DASHBOARD_TYPE = "dashboard"
+GRAPH_TYPE = "graph"
+SINGLESTAT_TYPE = "singlestat"
+TABLE_TYPE = "table"
+TEXT_TYPE = "text"
 ALERTLIST_TYPE = "alertlist"
 
 DEFAULT_FILL = 1
-DEFAULT_REFRESH = '10s'
+DEFAULT_REFRESH = "10s"
 DEFAULT_ROW_HEIGHT = Pixels(250)
 DEFAULT_LINE_WIDTH = 2
 DEFAULT_POINT_RADIUS = 5
@@ -86,10 +87,10 @@ DEFAULT_STEP = 10
 DEFAULT_LIMIT = 10
 TOTAL_SPAN = 12
 
-DARK_STYLE = 'dark'
-LIGHT_STYLE = 'light'
+DARK_STYLE = "dark"
+LIGHT_STYLE = "light"
 
-UTC = 'utc'
+UTC = "utc"
 
 SCHEMA_VERSION = 12
 
@@ -187,16 +188,13 @@ HIDE_VARIABLE = 2
 
 
 @attr.s
-class Mapping(object):
+class Mapping:
 
     name = attr.ib()
     value = attr.ib(validator=instance_of(int))
 
     def to_json_data(self):
-        return {
-            'name': self.name,
-            'value': self.value,
-        }
+        return {"name": self.name, "value": self.value}
 
 
 MAPPING_TYPE_VALUE_TO_TEXT = 1
@@ -220,30 +218,24 @@ VTYPE_DEFAULT = VTYPE_AVG
 
 
 @attr.s
-class Grid(object):
+class Grid:
 
     threshold1 = attr.ib(default=None)
-    threshold1Color = attr.ib(
-        default=attr.Factory(lambda: GREY1),
-        validator=instance_of(RGBA),
-    )
+    threshold1Color = attr.ib(default=attr.Factory(lambda: GREY1), validator=instance_of(RGBA))
     threshold2 = attr.ib(default=None)
-    threshold2Color = attr.ib(
-        default=attr.Factory(lambda: GREY2),
-        validator=instance_of(RGBA),
-    )
+    threshold2Color = attr.ib(default=attr.Factory(lambda: GREY2), validator=instance_of(RGBA))
 
     def to_json_data(self):
         return {
-            'threshold1': self.threshold1,
-            'threshold1Color': self.threshold1Color,
-            'threshold2': self.threshold2,
-            'threshold2Color': self.threshold2Color,
+            "threshold1": self.threshold1,
+            "threshold1Color": self.threshold1Color,
+            "threshold2": self.threshold2,
+            "threshold2Color": self.threshold2Color,
         }
 
 
 @attr.s
-class Legend(object):
+class Legend:
     avg = attr.ib(default=False, validator=instance_of(bool))
     current = attr.ib(default=False, validator=instance_of(bool))
     max = attr.ib(default=False, validator=instance_of(bool))
@@ -260,29 +252,32 @@ class Legend(object):
     sortDesc = attr.ib(default=False)
 
     def to_json_data(self):
-        values = ((self.avg or self.current or self.max or self.min)
-                  if self.values is None else self.values)
+        values = (
+            (self.avg or self.current or self.max or self.min)
+            if self.values is None
+            else self.values
+        )
 
         return {
-            'avg': self.avg,
-            'current': self.current,
-            'max': self.max,
-            'min': self.min,
-            'show': self.show,
-            'total': self.total,
-            'values': values,
-            'alignAsTable': self.alignAsTable,
-            'hideEmpty': self.hideEmpty,
-            'hideZero': self.hideZero,
-            'rightSide': self.rightSide,
-            'sideWidth': self.sideWidth,
-            'sort': self.sort,
-            'sortDesc': self.sortDesc,
+            "avg": self.avg,
+            "current": self.current,
+            "max": self.max,
+            "min": self.min,
+            "show": self.show,
+            "total": self.total,
+            "values": values,
+            "alignAsTable": self.alignAsTable,
+            "hideEmpty": self.hideEmpty,
+            "hideZero": self.hideZero,
+            "rightSide": self.rightSide,
+            "sideWidth": self.sideWidth,
+            "sort": self.sort,
+            "sortDesc": self.sortDesc,
         }
 
 
 @attr.s
-class Target(object):
+class Target:
     """
     Metric to show.
 
@@ -303,22 +298,22 @@ class Target(object):
 
     def to_json_data(self):
         return {
-            'expr': self.expr,
-            'target': self.target,
-            'format': self.format,
-            'interval': self.interval,
-            'intervalFactor': self.intervalFactor,
-            'legendFormat': self.legendFormat,
-            'metric': self.metric,
-            'refId': self.refId,
-            'step': self.step,
-            'instant': self.instant,
-            'datasource': self.datasource,
+            "expr": self.expr,
+            "target": self.target,
+            "format": self.format,
+            "interval": self.interval,
+            "intervalFactor": self.intervalFactor,
+            "legendFormat": self.legendFormat,
+            "metric": self.metric,
+            "refId": self.refId,
+            "step": self.step,
+            "instant": self.instant,
+            "datasource": self.datasource,
         }
 
 
 @attr.s
-class Tooltip(object):
+class Tooltip:
 
     msResolution = attr.ib(default=True, validator=instance_of(bool))
     shared = attr.ib(default=True, validator=instance_of(bool))
@@ -327,22 +322,23 @@ class Tooltip(object):
 
     def to_json_data(self):
         return {
-            'msResolution': self.msResolution,
-            'shared': self.shared,
-            'sort': self.sort,
-            'value_type': self.valueType,
+            "msResolution": self.msResolution,
+            "shared": self.shared,
+            "sort": self.sort,
+            "value_type": self.valueType,
         }
 
 
-def is_valid_xaxis_mode(instance, attribute, value):
+def is_valid_xaxis_mode(_instance, attribute, value):
     XAXIS_MODES = ("time", "series")
     if value not in XAXIS_MODES:
-        raise ValueError("{attr} should be one of {choice}".format(
-            attr=attribute, choice=XAXIS_MODES))
+        raise ValueError(
+            "{attr} should be one of {choice}".format(attr=attribute, choice=XAXIS_MODES)
+        )
 
 
 @attr.s
-class XAxis(object):
+class XAxis:
 
     mode = attr.ib(default="time", validator=is_valid_xaxis_mode)
     name = attr.ib(default=None)
@@ -350,17 +346,16 @@ class XAxis(object):
     show = attr.ib(validator=instance_of(bool), default=True)
 
     def to_json_data(self):
-        return {
-            'show': self.show,
-        }
+        return {"show": self.show}
 
 
 @attr.s
-class YAxis(object):
+class YAxis:
     """A single Y axis.
 
     Grafana graphs have two Y axes: one on the left and one on the right.
     """
+
     decimals = attr.ib(default=None)
     format = attr.ib(default=None)
     label = attr.ib(default=None)
@@ -371,32 +366,32 @@ class YAxis(object):
 
     def to_json_data(self):
         return {
-            'decimals': self.decimals,
-            'format': self.format,
-            'label': self.label,
-            'logBase': self.logBase,
-            'max': self.max,
-            'min': self.min,
-            'show': self.show,
+            "decimals": self.decimals,
+            "format": self.format,
+            "label": self.label,
+            "logBase": self.logBase,
+            "max": self.max,
+            "min": self.min,
+            "show": self.show,
         }
 
 
 @attr.s
-class YAxes(object):
+class YAxes:
     """The pair of Y axes on a Grafana graph.
 
     Each graph has two Y Axes, a left one and a right one.
     """
-    left = attr.ib(default=attr.Factory(lambda: YAxis(format=SHORT_FORMAT)),
-                   validator=instance_of(YAxis))
-    right = attr.ib(default=attr.Factory(lambda: YAxis(format=SHORT_FORMAT)),
-                    validator=instance_of(YAxis))
+
+    left = attr.ib(
+        default=attr.Factory(lambda: YAxis(format=SHORT_FORMAT)), validator=instance_of(YAxis)
+    )
+    right = attr.ib(
+        default=attr.Factory(lambda: YAxis(format=SHORT_FORMAT)), validator=instance_of(YAxis)
+    )
 
     def to_json_data(self):
-        return [
-            self.left,
-            self.right,
-        ]
+        return [self.left, self.right]
 
 
 def single_y_axis(**kwargs):
@@ -409,7 +404,7 @@ def single_y_axis(**kwargs):
     return YAxes(left=axis)
 
 
-def to_y_axes(data):
+def to_y_axes(data: Union[YAxes, Tuple[Any, Any], List[Any]]) -> YAxes:
     """Backwards compatibility for 'YAxes'.
 
     In grafanalib 0.1.2 and earlier, Y axes were specified as a list of two
@@ -422,55 +417,44 @@ def to_y_axes(data):
     if isinstance(data, YAxes):
         return data
     if not isinstance(data, (list, tuple)):
-        raise ValueError(
-            "Y axes must be either YAxes or a list of two values, got %r"
-            % data)
+        raise ValueError("Y axes must be either YAxes or a list of two values, got %r" % data)
     if len(data) != 2:
-        raise ValueError(
-            "Must specify exactly two YAxes, got %d: %r"
-            % (len(data), data))
+        raise ValueError("Must specify exactly two YAxes, got %d: %r" % (len(data), data))
     warnings.warn(
-        "Specify Y axes using YAxes or single_y_axis, rather than a "
-        "list/tuple",
-        DeprecationWarning, stacklevel=3)
+        "Specify Y axes using YAxes or single_y_axis, rather than a " "list/tuple",
+        DeprecationWarning,
+        stacklevel=3,
+    )
     return YAxes(left=data[0], right=data[1])
 
 
-def _balance_panels(panels):
+# TODO: Add a Panel type and use that instead of Any.
+def _balance_panels(panels: List[Any]) -> List[Any]:
     """Resize panels so they are evenly spaced."""
     allotted_spans = sum(panel.span if panel.span else 0 for panel in panels)
     no_span_set = [panel for panel in panels if panel.span is None]
-    auto_span = math.ceil(
-        (TOTAL_SPAN - allotted_spans) / (len(no_span_set) or 1))
-    return [
-        attr.assoc(panel, span=auto_span) if panel.span is None else panel
-        for panel in panels
-    ]
+    auto_span = math.ceil((TOTAL_SPAN - allotted_spans) / (len(no_span_set) or 1))
+    return [attr.assoc(panel, span=auto_span) if panel.span is None else panel for panel in panels]
 
 
 @attr.s
-class Row(object):
+class Row:
     # TODO: jml would like to separate the balancing behaviour from this
     # layer.
-    panels = attr.ib(default=attr.Factory(list), convert=_balance_panels)
-    collapse = attr.ib(
-        default=False, validator=instance_of(bool),
-    )
-    editable = attr.ib(
-        default=True, validator=instance_of(bool),
-    )
+    panels = attr.ib(default=attr.Factory(list), converter=_balance_panels)
+    collapse = attr.ib(default=False, validator=instance_of(bool))
+    editable = attr.ib(default=True, validator=instance_of(bool))
     height = attr.ib(
-        default=attr.Factory(lambda: DEFAULT_ROW_HEIGHT),
-        validator=instance_of(Pixels),
+        default=attr.Factory(lambda: DEFAULT_ROW_HEIGHT), validator=instance_of(Pixels)
     )
     showTitle = attr.ib(default=None)
     title = attr.ib(default=None)
     repeat = attr.ib(default=None)
 
-    def _iter_panels(self):
+    def iter_panels(self):
         return iter(self.panels)
 
-    def _map_panels(self, f):
+    def map_panels(self, f):
         return attr.assoc(self, panels=list(map(f, self.panels)))
 
     def to_json_data(self):
@@ -482,28 +466,26 @@ class Row(object):
         if self.showTitle is not None:
             showTitle = self.showTitle
         return {
-            'collapse': self.collapse,
-            'editable': self.editable,
-            'height': self.height,
-            'panels': self.panels,
-            'showTitle': showTitle,
-            'title': title,
-            'repeat': self.repeat,
+            "collapse": self.collapse,
+            "editable": self.editable,
+            "height": self.height,
+            "panels": self.panels,
+            "showTitle": showTitle,
+            "title": title,
+            "repeat": self.repeat,
         }
 
 
 @attr.s
-class Annotations(object):
+class Annotations:
     list = attr.ib(default=attr.Factory(list))
 
     def to_json_data(self):
-        return {
-            'list': self.list,
-        }
+        return {"list": self.list}
 
 
 @attr.s
-class DataSourceInput(object):
+class DataSourceInput:
     name = attr.ib()
     label = attr.ib()
     pluginId = attr.ib()
@@ -522,7 +504,7 @@ class DataSourceInput(object):
 
 
 @attr.s
-class ConstantInput(object):
+class ConstantInput:
     name = attr.ib()
     label = attr.ib()
     value = attr.ib()
@@ -539,13 +521,10 @@ class ConstantInput(object):
 
 
 @attr.s
-class DashboardLink(object):
+class DashboardLink:
     dashboard = attr.ib()
     uri = attr.ib()
-    keepTime = attr.ib(
-        default=True,
-        validator=instance_of(bool),
-    )
+    keepTime = attr.ib(default=True, validator=instance_of(bool))
     title = attr.ib(default=None)
     type = attr.ib(default=DASHBOARD_TYPE)
 
@@ -562,32 +541,25 @@ class DashboardLink(object):
 
 
 @attr.s
-class ExternalLink(object):
-    '''ExternalLink creates a top-level link attached to a dashboard.
+class ExternalLink:
+    """ExternalLink creates a top-level link attached to a dashboard.
 
         :param url: the URL to link to
         :param title: the text of the link
         :param keepTime: if true, the URL params for the dashboard's
             current time period are appended
-    '''
+    """
+
     uri = attr.ib()
     title = attr.ib()
-    keepTime = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-    )
+    keepTime = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            "keepTime": self.keepTime,
-            "title": self.title,
-            "type": 'link',
-            "url": self.uri,
-        }
+        return {"keepTime": self.keepTime, "title": self.title, "type": "link", "url": self.uri}
 
 
 @attr.s
-class Template(object):
+class Template:
     """Template create a new 'variable' for the dashboard, defines the variable
     name, human name, query to fetch the values and the default value.
 
@@ -617,126 +589,80 @@ class Template(object):
     dataSource = attr.ib(default=None)
     label = attr.ib(default=None)
     allValue = attr.ib(default=None)
-    includeAll = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-    )
-    multi = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-    )
+    includeAll = attr.ib(default=False, validator=instance_of(bool))
+    multi = attr.ib(default=False, validator=instance_of(bool))
     regex = attr.ib(default=None)
-    useTags = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-    )
+    useTags = attr.ib(default=False, validator=instance_of(bool))
     tagsQuery = attr.ib(default=None)
     tagValuesQuery = attr.ib(default=None)
-    refresh = attr.ib(default=REFRESH_ON_DASHBOARD_LOAD,
-                      validator=instance_of(int))
-    type = attr.ib(default='query')
+    refresh = attr.ib(default=REFRESH_ON_DASHBOARD_LOAD, validator=instance_of(int))
+    type = attr.ib(default="query")
     hide = attr.ib(default=SHOW)
 
     def to_json_data(self):
         return {
-            'allValue': self.allValue,
-            'current': {
-                'text': self.default,
-                'value': self.default,
-                'tags': [],
-            },
-            'datasource': self.dataSource,
-            'hide': self.hide,
-            'includeAll': self.includeAll,
-            'label': self.label,
-            'multi': self.multi,
-            'name': self.name,
-            'options': [],
-            'query': self.query,
-            'refresh': self.refresh,
-            'regex': self.regex,
-            'sort': 1,
-            'type': self.type,
-            'useTags': self.useTags,
-            'tagsQuery': self.tagsQuery,
-            'tagValuesQuery': self.tagValuesQuery,
+            "allValue": self.allValue,
+            "current": {"text": self.default, "value": self.default, "tags": []},
+            "datasource": self.dataSource,
+            "hide": self.hide,
+            "includeAll": self.includeAll,
+            "label": self.label,
+            "multi": self.multi,
+            "name": self.name,
+            "options": [],
+            "query": self.query,
+            "refresh": self.refresh,
+            "regex": self.regex,
+            "sort": 1,
+            "type": self.type,
+            "useTags": self.useTags,
+            "tagsQuery": self.tagsQuery,
+            "tagValuesQuery": self.tagValuesQuery,
         }
 
 
 @attr.s
-class Templating(object):
+class Templating:
     list = attr.ib(default=attr.Factory(list))
 
     def to_json_data(self):
-        return {
-            'list': self.list,
-        }
+        return {"list": self.list}
 
 
 @attr.s
-class Time(object):
+class Time:
     start = attr.ib()
     end = attr.ib()
 
     def to_json_data(self):
-        return {
-            'from': self.start,
-            'to': self.end,
-        }
+        return {"from": self.start, "to": self.end}
 
 
-DEFAULT_TIME = Time('now-1h', 'now')
+DEFAULT_TIME = Time("now-1h", "now")
 
 
 @attr.s
-class TimePicker(object):
+class TimePicker:
     refreshIntervals = attr.ib()
     timeOptions = attr.ib()
 
     def to_json_data(self):
-        return {
-            'refresh_intervals': self.refreshIntervals,
-            'time_options': self.timeOptions,
-        }
+        return {"refresh_intervals": self.refreshIntervals, "time_options": self.timeOptions}
 
 
 DEFAULT_TIME_PICKER = TimePicker(
-    refreshIntervals=[
-        "5s",
-        "10s",
-        "30s",
-        "1m",
-        "5m",
-        "15m",
-        "30m",
-        "1h",
-        "2h",
-        "1d"
-    ],
-    timeOptions=[
-        "5m",
-        "15m",
-        "1h",
-        "6h",
-        "12h",
-        "24h",
-        "2d",
-        "7d",
-        "30d"
-    ]
+    refreshIntervals=["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
+    timeOptions=["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"],
 )
 
 
 @attr.s
-class Evaluator(object):
+class Evaluator:
     type = attr.ib()
     params = attr.ib()
 
     def to_json_data(self):
-        return {
-            "type": self.type,
-            "params": self.params,
-        }
+        return {"type": self.type, "params": self.params}
 
 
 def GreaterThan(value):
@@ -760,7 +686,7 @@ def NoValue():
 
 
 @attr.s
-class TimeRange(object):
+class TimeRange:
     """A time range for an alert condition.
 
     A condition has to hold for this length of time before triggering.
@@ -779,7 +705,7 @@ class TimeRange(object):
 
 
 @attr.s
-class AlertCondition(object):
+class AlertCondition:
     """
     A condition on an alert.
 
@@ -804,28 +730,18 @@ class AlertCondition(object):
     type = attr.ib(default=CTYPE_QUERY)
 
     def to_json_data(self):
-        queryParams = [
-            self.target.refId, self.timeRange.from_time, self.timeRange.to_time
-        ]
+        queryParams = [self.target.refId, self.timeRange.from_time, self.timeRange.to_time]
         return {
             "evaluator": self.evaluator,
-            "operator": {
-                "type": self.operator,
-            },
-            "query": {
-                "model": self.target,
-                "params": queryParams,
-            },
-            "reducer": {
-                "params": [],
-                "type": self.reducerType,
-            },
+            "operator": {"type": self.operator},
+            "query": {"model": self.target, "params": queryParams},
+            "reducer": {"params": [], "type": self.reducerType},
             "type": self.type,
         }
 
 
 @attr.s
-class Alert(object):
+class Alert:
 
     name = attr.ib()
     message = attr.ib()
@@ -850,57 +766,38 @@ class Alert(object):
 
 
 @attr.s
-class Dashboard(object):
+class Dashboard:
 
     title = attr.ib()
     rows = attr.ib()
-    annotations = attr.ib(
-        default=attr.Factory(Annotations),
-        validator=instance_of(Annotations),
-    )
-    editable = attr.ib(
-        default=True,
-        validator=instance_of(bool),
-    )
+    annotations = attr.ib(default=attr.Factory(Annotations), validator=instance_of(Annotations))
+    editable = attr.ib(default=True, validator=instance_of(bool))
     gnetId = attr.ib(default=None)
-    hideControls = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-    )
+    hideControls = attr.ib(default=False, validator=instance_of(bool))
     id = attr.ib(default=None)
     inputs = attr.ib(default=attr.Factory(list))
     links = attr.ib(default=attr.Factory(list))
     refresh = attr.ib(default=DEFAULT_REFRESH)
     schemaVersion = attr.ib(default=SCHEMA_VERSION)
-    sharedCrosshair = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-    )
+    sharedCrosshair = attr.ib(default=False, validator=instance_of(bool))
     style = attr.ib(default=DARK_STYLE)
     tags = attr.ib(default=attr.Factory(list))
-    templating = attr.ib(
-        default=attr.Factory(Templating),
-        validator=instance_of(Templating),
-    )
-    time = attr.ib(
-        default=attr.Factory(lambda: DEFAULT_TIME),
-        validator=instance_of(Time),
-    )
+    templating = attr.ib(default=attr.Factory(Templating), validator=instance_of(Templating))
+    time = attr.ib(default=attr.Factory(lambda: DEFAULT_TIME), validator=instance_of(Time))
     timePicker = attr.ib(
-        default=attr.Factory(lambda: DEFAULT_TIME_PICKER),
-        validator=instance_of(TimePicker),
+        default=attr.Factory(lambda: DEFAULT_TIME_PICKER), validator=instance_of(TimePicker)
     )
     timezone = attr.ib(default=UTC)
     version = attr.ib(default=0)
     uid = attr.ib(default=None)
 
-    def _iter_panels(self):
+    def iter_panels(self):
         for row in self.rows:
-            for panel in row._iter_panels():
+            for panel in row.iter_panels():
                 yield panel
 
-    def _map_panels(self, f):
-        return attr.assoc(self, rows=[r._map_panels(f) for r in self.rows])
+    def map_panels(self, f):
+        return attr.assoc(self, rows=[r.map_panels(f) for r in self.rows])
 
     def auto_panel_ids(self):
         """Give unique IDs all the panels without IDs.
@@ -910,40 +807,41 @@ class Dashboard(object):
         ``id`` property set will keep that property, all others will have
         auto-generated IDs provided for them.
         """
-        ids = set([panel.id for panel in self._iter_panels() if panel.id])
+        ids = {panel.id for panel in self.iter_panels() if panel.id}
         auto_ids = (i for i in itertools.count(1) if i not in ids)
 
         def set_id(panel):
             return panel if panel.id else attr.assoc(panel, id=next(auto_ids))
-        return self._map_panels(set_id)
+
+        return self.map_panels(set_id)
 
     def to_json_data(self):
         return {
-            '__inputs': self.inputs,
-            'annotations': self.annotations,
-            'editable': self.editable,
-            'gnetId': self.gnetId,
-            'hideControls': self.hideControls,
-            'id': self.id,
-            'links': self.links,
-            'refresh': self.refresh,
-            'rows': self.rows,
-            'schemaVersion': self.schemaVersion,
-            'sharedCrosshair': self.sharedCrosshair,
-            'style': self.style,
-            'tags': self.tags,
-            'templating': self.templating,
-            'title': self.title,
-            'time': self.time,
-            'timepicker': self.timePicker,
-            'timezone': self.timezone,
-            'version': self.version,
-            'uid': self.uid,
+            "__inputs": self.inputs,
+            "annotations": self.annotations,
+            "editable": self.editable,
+            "gnetId": self.gnetId,
+            "hideControls": self.hideControls,
+            "id": self.id,
+            "links": self.links,
+            "refresh": self.refresh,
+            "rows": self.rows,
+            "schemaVersion": self.schemaVersion,
+            "sharedCrosshair": self.sharedCrosshair,
+            "style": self.style,
+            "tags": self.tags,
+            "templating": self.templating,
+            "title": self.title,
+            "time": self.time,
+            "timepicker": self.timePicker,
+            "timezone": self.timezone,
+            "version": self.version,
+            "uid": self.uid,
         }
 
 
 @attr.s
-class Graph(object):
+class Graph:
     """
     Generates Graph panel json structure.
 
@@ -964,10 +862,7 @@ class Graph(object):
     grid = attr.ib(default=attr.Factory(Grid), validator=instance_of(Grid))
     id = attr.ib(default=None)
     isNew = attr.ib(default=True, validator=instance_of(bool))
-    legend = attr.ib(
-        default=attr.Factory(Legend),
-        validator=instance_of(Legend),
-    )
+    legend = attr.ib(default=attr.Factory(Legend), validator=instance_of(Legend))
     lines = attr.ib(default=True, validator=instance_of(bool))
     lineWidth = attr.ib(default=DEFAULT_LINE_WIDTH)
     links = attr.ib(default=attr.Factory(list))
@@ -984,114 +879,93 @@ class Graph(object):
     steppedLine = attr.ib(default=False, validator=instance_of(bool))
     timeFrom = attr.ib(default=None)
     timeShift = attr.ib(default=None)
-    tooltip = attr.ib(
-        default=attr.Factory(Tooltip),
-        validator=instance_of(Tooltip),
-    )
+    tooltip = attr.ib(default=attr.Factory(Tooltip), validator=instance_of(Tooltip))
     transparent = attr.ib(default=False, validator=instance_of(bool))
     xAxis = attr.ib(default=attr.Factory(XAxis), validator=instance_of(XAxis))
     # XXX: This isn't a *good* default, rather it's the default Grafana uses.
-    yAxes = attr.ib(
-        default=attr.Factory(YAxes),
-        convert=to_y_axes,
-        validator=instance_of(YAxes),
-    )
+    yAxes = attr.ib(default=attr.Factory(YAxes), converter=to_y_axes, validator=instance_of(YAxes))
     alert = attr.ib(default=None)
 
     def to_json_data(self):
         graphObject = {
-            'aliasColors': self.aliasColors,
-            'bars': self.bars,
-            'datasource': self.dataSource,
-            'description': self.description,
-            'editable': self.editable,
-            'error': self.error,
-            'fill': self.fill,
-            'grid': self.grid,
-            'id': self.id,
-            'isNew': self.isNew,
-            'legend': self.legend,
-            'lines': self.lines,
-            'linewidth': self.lineWidth,
-            'links': self.links,
-            'minSpan': self.minSpan,
-            'nullPointMode': self.nullPointMode,
-            'percentage': self.percentage,
-            'pointradius': self.pointRadius,
-            'points': self.points,
-            'renderer': self.renderer,
-            'repeat': self.repeat,
-            'seriesOverrides': self.seriesOverrides,
-            'span': self.span,
-            'stack': self.stack,
-            'steppedLine': self.steppedLine,
-            'targets': self.targets,
-            'timeFrom': self.timeFrom,
-            'timeShift': self.timeShift,
-            'title': self.title,
-            'tooltip': self.tooltip,
-            'transparent': self.transparent,
-            'type': GRAPH_TYPE,
-            'xaxis': self.xAxis,
-            'yaxes': self.yAxes,
+            "aliasColors": self.aliasColors,
+            "bars": self.bars,
+            "datasource": self.dataSource,
+            "description": self.description,
+            "editable": self.editable,
+            "error": self.error,
+            "fill": self.fill,
+            "grid": self.grid,
+            "id": self.id,
+            "isNew": self.isNew,
+            "legend": self.legend,
+            "lines": self.lines,
+            "linewidth": self.lineWidth,
+            "links": self.links,
+            "minSpan": self.minSpan,
+            "nullPointMode": self.nullPointMode,
+            "percentage": self.percentage,
+            "pointradius": self.pointRadius,
+            "points": self.points,
+            "renderer": self.renderer,
+            "repeat": self.repeat,
+            "seriesOverrides": self.seriesOverrides,
+            "span": self.span,
+            "stack": self.stack,
+            "steppedLine": self.steppedLine,
+            "targets": self.targets,
+            "timeFrom": self.timeFrom,
+            "timeShift": self.timeShift,
+            "title": self.title,
+            "tooltip": self.tooltip,
+            "transparent": self.transparent,
+            "type": GRAPH_TYPE,
+            "xaxis": self.xAxis,
+            "yaxes": self.yAxes,
         }
         if self.alert:
-            graphObject['alert'] = self.alert
+            graphObject["alert"] = self.alert
         return graphObject
 
 
 @attr.s
-class SparkLine(object):
-    fillColor = attr.ib(
-        default=attr.Factory(lambda: BLUE_RGBA),
-        validator=instance_of(RGBA),
-    )
+class SparkLine:
+    fillColor = attr.ib(default=attr.Factory(lambda: BLUE_RGBA), validator=instance_of(RGBA))
     full = attr.ib(default=False, validator=instance_of(bool))
-    lineColor = attr.ib(
-        default=attr.Factory(lambda: BLUE_RGB),
-        validator=instance_of(RGB),
-    )
+    lineColor = attr.ib(default=attr.Factory(lambda: BLUE_RGB), validator=instance_of(RGB))
     show = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
         return {
-            'fillColor': self.fillColor,
-            'full': self.full,
-            'lineColor': self.lineColor,
-            'show': self.show,
+            "fillColor": self.fillColor,
+            "full": self.full,
+            "lineColor": self.lineColor,
+            "show": self.show,
         }
 
 
 @attr.s
-class ValueMap(object):
+class ValueMap:
     op = attr.ib()
     text = attr.ib()
     value = attr.ib()
 
     def to_json_data(self):
-        return {
-            'op': self.op,
-            'text': self.text,
-            'value': self.value,
-        }
+        return {"op": self.op, "text": self.text, "value": self.value}
 
 
 @attr.s
-class RangeMap(object):
+class RangeMap:
     start = attr.ib()
     end = attr.ib()
     text = attr.ib()
 
     def to_json_data(self):
-        return {
-            'from': self.start,
-            'to': self.end,
-            'text': self.text,
-        }
+        return {"from": self.start, "to": self.end, "text": self.text}
 
 
 @attr.s
-class Gauge(object):
+class Gauge:
 
     minValue = attr.ib(default=0, validator=instance_of(int))
     maxValue = attr.ib(default=100, validator=instance_of(int))
@@ -1101,16 +975,16 @@ class Gauge(object):
 
     def to_json_data(self):
         return {
-            'maxValue': self.maxValue,
-            'minValue': self.minValue,
-            'show': self.show,
-            'thresholdLabels': self.thresholdLabels,
-            'thresholdMarkers': self.thresholdMarkers,
+            "maxValue": self.maxValue,
+            "minValue": self.minValue,
+            "show": self.show,
+            "thresholdLabels": self.thresholdLabels,
+            "thresholdMarkers": self.thresholdMarkers,
         }
 
 
 @attr.s
-class Text(object):
+class Text:
     """Generates a Text panel."""
 
     content = attr.ib()
@@ -1126,22 +1000,22 @@ class Text(object):
 
     def to_json_data(self):
         return {
-            'content': self.content,
-            'editable': self.editable,
-            'error': self.error,
-            'height': self.height,
-            'id': self.id,
-            'links': self.links,
-            'mode': self.mode,
-            'span': self.span,
-            'title': self.title,
-            'transparent': self.transparent,
-            'type': TEXT_TYPE,
+            "content": self.content,
+            "editable": self.editable,
+            "error": self.error,
+            "height": self.height,
+            "id": self.id,
+            "links": self.links,
+            "mode": self.mode,
+            "span": self.span,
+            "title": self.title,
+            "transparent": self.transparent,
+            "type": TEXT_TYPE,
         }
 
 
 @attr.s
-class AlertList(object):
+class AlertList:
     """Generates the AlertList Panel."""
 
     description = attr.ib(default="")
@@ -1157,22 +1031,22 @@ class AlertList(object):
 
     def to_json_data(self):
         return {
-            'description': self.description,
-            'id': self.id,
-            'limit': self.limit,
-            'links': self.links,
-            'onlyAlertsOnDashboard': self.onlyAlertsOnDashboard,
-            'show': self.show,
-            'sortOrder': self.sortOrder,
-            'stateFilter': self.stateFilter,
-            'title': self.title,
-            'transparent': self.transparent,
-            'type': ALERTLIST_TYPE,
+            "description": self.description,
+            "id": self.id,
+            "limit": self.limit,
+            "links": self.links,
+            "onlyAlertsOnDashboard": self.onlyAlertsOnDashboard,
+            "show": self.show,
+            "sortOrder": self.sortOrder,
+            "stateFilter": self.stateFilter,
+            "title": self.title,
+            "transparent": self.transparent,
+            "type": ALERTLIST_TYPE,
         }
 
 
 @attr.s
-class SingleStat(object):
+class SingleStat:
     """Generates Single Stat panel json structure
 
     Grafana doc on singlestat: http://docs.grafana.org/reference/singlestat/
@@ -1234,8 +1108,7 @@ class SingleStat(object):
     decimals = attr.ib(default=None)
     editable = attr.ib(default=True, validator=instance_of(bool))
     format = attr.ib(default="none")
-    gauge = attr.ib(default=attr.Factory(Gauge),
-                    validator=instance_of(Gauge))
+    gauge = attr.ib(default=attr.Factory(Gauge), validator=instance_of(Gauge))
     height = attr.ib(default=None)
     hideTimeOverride = attr.ib(default=False, validator=instance_of(bool))
     id = attr.ib(default=None)
@@ -1243,10 +1116,7 @@ class SingleStat(object):
     links = attr.ib(default=attr.Factory(list))
     mappingType = attr.ib(default=MAPPING_TYPE_VALUE_TO_TEXT)
     mappingTypes = attr.ib(
-        default=attr.Factory(lambda: [
-            MAPPING_VALUE_TO_TEXT,
-            MAPPING_RANGE_TO_TEXT,
-        ]),
+        default=attr.Factory(lambda: [MAPPING_VALUE_TO_TEXT, MAPPING_RANGE_TO_TEXT])
     )
     maxDataPoints = attr.ib(default=100)
     minSpan = attr.ib(default=None)
@@ -1259,10 +1129,7 @@ class SingleStat(object):
     rangeMaps = attr.ib(default=attr.Factory(list))
     repeat = attr.ib(default=None)
     span = attr.ib(default=6)
-    sparkline = attr.ib(
-        default=attr.Factory(SparkLine),
-        validator=instance_of(SparkLine),
-    )
+    sparkline = attr.ib(default=attr.Factory(SparkLine), validator=instance_of(SparkLine))
     thresholds = attr.ib(default="")
     transparent = attr.ib(default=False, validator=instance_of(bool))
     valueFontSize = attr.ib(default="80%")
@@ -1272,63 +1139,60 @@ class SingleStat(object):
 
     def to_json_data(self):
         return {
-            'cacheTimeout': self.cacheTimeout,
-            'colorBackground': self.colorBackground,
-            'colorValue': self.colorValue,
-            'colors': self.colors,
-            'datasource': self.dataSource,
-            'decimals': self.decimals,
-            'description': self.description,
-            'editable': self.editable,
-            'format': self.format,
-            'gauge': self.gauge,
-            'id': self.id,
-            'interval': self.interval,
-            'links': self.links,
-            'height': self.height,
-            'hideTimeOverride': self.hideTimeOverride,
-            'mappingType': self.mappingType,
-            'mappingTypes': self.mappingTypes,
-            'maxDataPoints': self.maxDataPoints,
-            'minSpan': self.minSpan,
-            'nullPointMode': self.nullPointMode,
-            'nullText': self.nullText,
-            'postfix': self.postfix,
-            'postfixFontSize': self.postfixFontSize,
-            'prefix': self.prefix,
-            'prefixFontSize': self.prefixFontSize,
-            'rangeMaps': self.rangeMaps,
-            'repeat': self.repeat,
-            'span': self.span,
-            'sparkline': self.sparkline,
-            'targets': self.targets,
-            'thresholds': self.thresholds,
-            'title': self.title,
-            'transparent': self.transparent,
-            'type': SINGLESTAT_TYPE,
-            'valueFontSize': self.valueFontSize,
-            'valueMaps': self.valueMaps,
-            'valueName': self.valueName,
-            'timeFrom': self.timeFrom,
+            "cacheTimeout": self.cacheTimeout,
+            "colorBackground": self.colorBackground,
+            "colorValue": self.colorValue,
+            "colors": self.colors,
+            "datasource": self.dataSource,
+            "decimals": self.decimals,
+            "description": self.description,
+            "editable": self.editable,
+            "format": self.format,
+            "gauge": self.gauge,
+            "id": self.id,
+            "interval": self.interval,
+            "links": self.links,
+            "height": self.height,
+            "hideTimeOverride": self.hideTimeOverride,
+            "mappingType": self.mappingType,
+            "mappingTypes": self.mappingTypes,
+            "maxDataPoints": self.maxDataPoints,
+            "minSpan": self.minSpan,
+            "nullPointMode": self.nullPointMode,
+            "nullText": self.nullText,
+            "postfix": self.postfix,
+            "postfixFontSize": self.postfixFontSize,
+            "prefix": self.prefix,
+            "prefixFontSize": self.prefixFontSize,
+            "rangeMaps": self.rangeMaps,
+            "repeat": self.repeat,
+            "span": self.span,
+            "sparkline": self.sparkline,
+            "targets": self.targets,
+            "thresholds": self.thresholds,
+            "title": self.title,
+            "transparent": self.transparent,
+            "type": SINGLESTAT_TYPE,
+            "valueFontSize": self.valueFontSize,
+            "valueMaps": self.valueMaps,
+            "valueName": self.valueName,
+            "timeFrom": self.timeFrom,
         }
 
 
 @attr.s
-class DateColumnStyleType(object):
-    TYPE = 'date'
+class DateColumnStyleType:
+    TYPE = "date"
 
     dateFormat = attr.ib(default="YYYY-MM-DD HH:mm:ss")
 
     def to_json_data(self):
-        return {
-            'dateFormat': self.dateFormat,
-            'type': self.TYPE,
-        }
+        return {"dateFormat": self.dateFormat, "type": self.TYPE}
 
 
 @attr.s
-class NumberColumnStyleType(object):
-    TYPE = 'number'
+class NumberColumnStyleType:
+    TYPE = "number"
 
     colorMode = attr.ib(default=None)
     colors = attr.ib(default=attr.Factory(lambda: [GREEN, ORANGE, RED]))
@@ -1338,78 +1202,63 @@ class NumberColumnStyleType(object):
 
     def to_json_data(self):
         return {
-            'colorMode': self.colorMode,
-            'colors': self.colors,
-            'decimals': self.decimals,
-            'thresholds': self.thresholds,
-            'type': self.TYPE,
-            'unit': self.unit,
+            "colorMode": self.colorMode,
+            "colors": self.colors,
+            "decimals": self.decimals,
+            "thresholds": self.thresholds,
+            "type": self.TYPE,
+            "unit": self.unit,
         }
 
 
 @attr.s
-class StringColumnStyleType(object):
-    TYPE = 'string'
+class StringColumnStyleType:
+    TYPE = "string"
 
     preserveFormat = attr.ib(validator=instance_of(bool))
     sanitize = attr.ib(validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            'preserveFormat': self.preserveFormat,
-            'sanitize': self.sanitize,
-            'type': self.TYPE,
-        }
+        return {"preserveFormat": self.preserveFormat, "sanitize": self.sanitize, "type": self.TYPE}
 
 
 @attr.s
-class HiddenColumnStyleType(object):
-    TYPE = 'hidden'
+class HiddenColumnStyleType:
+    TYPE = "hidden"
 
     def to_json_data(self):
-        return {
-            'type': self.TYPE,
-        }
+        return {"type": self.TYPE}
 
 
-@attr.s
-class ColumnStyle(object):
+ColumnStyleTypes = Union[
+    DateColumnStyleType, HiddenColumnStyleType, NumberColumnStyleType, StringColumnStyleType
+]
 
-    alias = attr.ib(default="")
-    pattern = attr.ib(default="")
-    type = attr.ib(
-        default=attr.Factory(NumberColumnStyleType),
-        validator=instance_of((
-            DateColumnStyleType,
-            HiddenColumnStyleType,
-            NumberColumnStyleType,
-            StringColumnStyleType,
-        ))
-    )
+
+@attr.s(auto_attribs=True)
+class ColumnStyle:
+
+    alias: str = ""
+    pattern: str = ""
+    type: ColumnStyleTypes = attr.Factory(NumberColumnStyleType)
 
     def to_json_data(self):
-        data = {
-            'alias': self.alias,
-            'pattern': self.pattern,
-        }
+        data = {"alias": self.alias, "pattern": self.pattern}
         data.update(self.type.to_json_data())
         return data
 
 
 @attr.s
-class ColumnSort(object):
+class ColumnSort:
     col = attr.ib(default=None)
     desc = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            'col': self.col,
-            'desc': self.desc,
-        }
+        return {"col": self.col, "desc": self.desc}
 
 
 @attr.s
-class Column(object):
+class Column:
     """Details of an aggregation column in a table panel.
 
     :param text: name of column
@@ -1420,10 +1269,7 @@ class Column(object):
     value = attr.ib(default="avg")
 
     def to_json_data(self):
-        return {
-            'text': self.text,
-            'value': self.value,
-        }
+        return {"text": self.text, "value": self.value}
 
 
 def _style_columns(columns):
@@ -1448,13 +1294,14 @@ def _style_columns(columns):
         if style.pattern and style.pattern != column.text:
             raise ValueError(
                 "ColumnStyle pattern (%r) must match the column name (%r) if "
-                "specified" % (style.pattern, column.text))
+                "specified" % (style.pattern, column.text)
+            )
         styles.append(attr.evolve(style, pattern=column.text))
     return new_columns, styles
 
 
 @attr.s
-class Table(object):
+class Table:
     """Generates Table panel json structure
 
     Grafana doc on table: http://docs.grafana.org/reference/table_panel/
@@ -1498,8 +1345,7 @@ class Table(object):
     scroll = attr.ib(default=True, validator=instance_of(bool))
     showHeader = attr.ib(default=True, validator=instance_of(bool))
     span = attr.ib(default=6)
-    sort = attr.ib(
-        default=attr.Factory(ColumnSort), validator=instance_of(ColumnSort))
+    sort = attr.ib(default=attr.Factory(ColumnSort), validator=instance_of(ColumnSort))
     styles = attr.ib()
     timeFrom = attr.ib(default=None)
 
@@ -1507,16 +1353,10 @@ class Table(object):
     transparent = attr.ib(default=False, validator=instance_of(bool))
 
     @styles.default
-    def styles_default(self):
+    def styles_default(self):  # pylint: disable=no-self-use
         return [
-            ColumnStyle(
-                alias="Time",
-                pattern="time",
-                type=DateColumnStyleType(),
-            ),
-            ColumnStyle(
-                pattern="/.*/",
-            ),
+            ColumnStyle(alias="Time", pattern="time", type=DateColumnStyleType()),
+            ColumnStyle(pattern="/.*/"),
         ]
 
     @classmethod
@@ -1538,27 +1378,27 @@ class Table(object):
 
     def to_json_data(self):
         return {
-            'columns': self.columns,
-            'datasource': self.dataSource,
-            'description': self.description,
-            'editable': self.editable,
-            'fontSize': self.fontSize,
-            'height': self.height,
-            'hideTimeOverride': self.hideTimeOverride,
-            'id': self.id,
-            'links': self.links,
-            'minSpan': self.minSpan,
-            'pageSize': self.pageSize,
-            'repeat': self.repeat,
-            'scroll': self.scroll,
-            'showHeader': self.showHeader,
-            'span': self.span,
-            'sort': self.sort,
-            'styles': self.styles,
-            'targets': self.targets,
-            'timeFrom': self.timeFrom,
-            'title': self.title,
-            'transform': self.transform,
-            'transparent': self.transparent,
-            'type': TABLE_TYPE,
+            "columns": self.columns,
+            "datasource": self.dataSource,
+            "description": self.description,
+            "editable": self.editable,
+            "fontSize": self.fontSize,
+            "height": self.height,
+            "hideTimeOverride": self.hideTimeOverride,
+            "id": self.id,
+            "links": self.links,
+            "minSpan": self.minSpan,
+            "pageSize": self.pageSize,
+            "repeat": self.repeat,
+            "scroll": self.scroll,
+            "showHeader": self.showHeader,
+            "span": self.span,
+            "sort": self.sort,
+            "styles": self.styles,
+            "targets": self.targets,
+            "timeFrom": self.timeFrom,
+            "title": self.title,
+            "transform": self.transform,
+            "transparent": self.transparent,
+            "type": TABLE_TYPE,
         }

@@ -1,8 +1,7 @@
 """Support for OpenTSDB."""
 
 import attr
-from attr.validators import instance_of
-from grafanalib.validators import is_in
+from attr.validators import in_, instance_of
 
 # OpenTSDB aggregators
 OTSDB_AGG_AVG = "avg"
@@ -36,36 +35,35 @@ OTSDB_AGG_P999 = "p999"
 OTSDB_AGG_SUM = "sum"
 OTSDB_AGG_ZIMSUM = "zimsum"
 
-OTSDB_DOWNSAMPLING_FILL_POLICIES = ('none', 'nan', 'null', 'zero')
-OTSDB_DOWNSAMPLING_FILL_POLICY_DEFAULT = 'none'
+OTSDB_DOWNSAMPLING_FILL_POLICIES = ("none", "nan", "null", "zero")
+OTSDB_DOWNSAMPLING_FILL_POLICY_DEFAULT = "none"
 
 OTSDB_QUERY_FILTERS = (
-    'literal_or', 'iliteral_or', 'not_literal_or',
-    'not_iliteral_or', 'wildcard', 'iwildcard', 'regexp')
-OTSDB_QUERY_FILTER_DEFAULT = 'literal_or'
+    "literal_or",
+    "iliteral_or",
+    "not_literal_or",
+    "not_iliteral_or",
+    "wildcard",
+    "iwildcard",
+    "regexp",
+)
+OTSDB_QUERY_FILTER_DEFAULT = "literal_or"
 
 
 @attr.s
-class OpenTSDBFilter(object):
+class OpenTSDBFilter:
 
     value = attr.ib()
     tag = attr.ib()
-    type = attr.ib(
-        default=OTSDB_QUERY_FILTER_DEFAULT,
-        validator=is_in(OTSDB_QUERY_FILTERS))
+    type = attr.ib(default=OTSDB_QUERY_FILTER_DEFAULT, validator=in_(OTSDB_QUERY_FILTERS))
     groupBy = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            'filter': self.value,
-            'tagk': self.tag,
-            'type': self.type,
-            'groupBy': self.groupBy
-        }
+        return {"filter": self.value, "tagk": self.tag, "type": self.type, "groupBy": self.groupBy}
 
 
 @attr.s
-class OpenTSDBTarget(object):
+class OpenTSDBTarget:
     """Generates OpenTSDB target JSON structure.
 
     Grafana docs on using OpenTSDB:
@@ -115,7 +113,8 @@ class OpenTSDBTarget(object):
     downsampleAggregator = attr.ib(default=OTSDB_AGG_SUM)
     downsampleFillPolicy = attr.ib(
         default=OTSDB_DOWNSAMPLING_FILL_POLICY_DEFAULT,
-        validator=is_in(OTSDB_DOWNSAMPLING_FILL_POLICIES))
+        validator=in_(OTSDB_DOWNSAMPLING_FILL_POLICIES),
+    )
     downsampleInterval = attr.ib(default=None)
     filters = attr.ib(default=attr.Factory(list))
     shouldComputeRate = attr.ib(default=False, validator=instance_of(bool))
@@ -127,21 +126,21 @@ class OpenTSDBTarget(object):
     def to_json_data(self):
 
         return {
-            'aggregator': self.aggregator,
-            'alias': self.alias,
-            'isCounter': self.isCounter,
-            'counterMax': self.counterMax,
-            'counterResetValue': self.counterResetValue,
-            'disableDownsampling': self.disableDownsampling,
-            'downsampleAggregator': self.downsampleAggregator,
-            'downsampleFillPolicy': self.downsampleFillPolicy,
-            'downsampleInterval': self.downsampleInterval,
-            'filters': self.filters,
-            'metric': self.metric,
-            'refId': self.refId,
-            'shouldComputeRate': self.shouldComputeRate,
-            'currentFilterGroupBy': self.currentFilterGroupBy,
-            'currentFilterKey': self.currentFilterKey,
-            'currentFilterType': self.currentFilterType,
-            'currentFilterValue': self.currentFilterValue,
+            "aggregator": self.aggregator,
+            "alias": self.alias,
+            "isCounter": self.isCounter,
+            "counterMax": self.counterMax,
+            "counterResetValue": self.counterResetValue,
+            "disableDownsampling": self.disableDownsampling,
+            "downsampleAggregator": self.downsampleAggregator,
+            "downsampleFillPolicy": self.downsampleFillPolicy,
+            "downsampleInterval": self.downsampleInterval,
+            "filters": self.filters,
+            "metric": self.metric,
+            "refId": self.refId,
+            "shouldComputeRate": self.shouldComputeRate,
+            "currentFilterGroupBy": self.currentFilterGroupBy,
+            "currentFilterKey": self.currentFilterKey,
+            "currentFilterType": self.currentFilterType,
+            "currentFilterValue": self.currentFilterValue,
         }

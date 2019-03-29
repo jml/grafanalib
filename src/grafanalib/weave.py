@@ -5,10 +5,8 @@ has our Weave-specific preferences.
 """
 
 import attr
-
 import grafanalib.core as G
 from grafanalib import prometheus
-
 
 YELLOW = "#EAB839"
 GREEN = "#7EB26D"
@@ -17,13 +15,13 @@ ORANGE = "#EF843C"
 RED = "#E24D42"
 
 ALIAS_COLORS = {
-  "1xx": YELLOW,
-  "2xx": GREEN,
-  "3xx": BLUE,
-  "4xx": ORANGE,
-  "5xx": RED,
-  "success": GREEN,
-  "error": RED,
+    "1xx": YELLOW,
+    "2xx": GREEN,
+    "3xx": BLUE,
+    "4xx": ORANGE,
+    "5xx": RED,
+    "success": GREEN,
+    "error": RED,
 }
 
 
@@ -37,21 +35,21 @@ def QPSGraph(data_source, title, expressions, **kwargs):
     :param kwargs: Passed on to Graph.
     """
     if len(expressions) != 5 and len(expressions) != 7:
-        raise ValueError('Expected 5 or 7 expressions, got {}: {}'.format(
-            len(expressions), expressions))
+        raise ValueError(
+            "Expected 5 or 7 expressions, got {}: {}".format(len(expressions), expressions)
+        )
     legends = sorted(ALIAS_COLORS.keys())
     exprs = zip(legends, expressions)
-    return stacked(prometheus.PromGraph(
-        data_source=data_source,
-        title=title,
-        expressions=exprs,
-        aliasColors=ALIAS_COLORS,
-        yAxes=[
-            G.YAxis(format=G.OPS_FORMAT),
-            G.YAxis(format=G.SHORT_FORMAT),
-        ],
-        **kwargs
-    ))
+    return stacked(
+        prometheus.PromGraph(
+            data_source=data_source,
+            title=title,
+            expressions=exprs,
+            aliasColors=ALIAS_COLORS,
+            yAxes=[G.YAxis(format=G.OPS_FORMAT), G.YAxis(format=G.SHORT_FORMAT)],
+            **kwargs,
+        )
+    )
 
 
 def stacked(graph):
@@ -62,18 +60,10 @@ def stacked(graph):
         nullPointMode=G.NULL_AS_ZERO,
         stack=True,
         fill=10,
-        tooltip=G.Tooltip(
-            valueType=G.INDIVIDUAL,
-        ),
+        tooltip=G.Tooltip(valueType=G.INDIVIDUAL),
     )
 
 
 def PercentUnitAxis(label=None):
     """A Y axis that shows a percentage based on a unit value."""
-    return G.YAxis(
-        format=G.PERCENT_UNIT_FORMAT,
-        label=label,
-        logBase=1,
-        max=1,
-        min=0,
-    )
+    return G.YAxis(format=G.PERCENT_UNIT_FORMAT, label=label, logBase=1, max=1, min=0)

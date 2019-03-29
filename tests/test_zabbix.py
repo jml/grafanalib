@@ -1,10 +1,11 @@
 """Tests for Zabbix Datasource"""
 
+import sys
+
 import grafanalib.core as G
 import grafanalib.zabbix as Z
 from grafanalib import _gen
 
-import sys
 if sys.version_info[0] < 3:
     from io import BytesIO as StringIO
 else:
@@ -22,9 +23,8 @@ def test_serialization_zabbix_target():
                 host="Zabbix Host",
                 application="CPU",
                 item="/CPU (load)/",
-                functions=[
-                    Z.ZabbixSetAliasFunction("View alias"),
-                ]),
+                functions=[Z.ZabbixSetAliasFunction("View alias")],
+            )
         ],
         id=1,
         yAxes=[
@@ -34,7 +34,7 @@ def test_serialization_zabbix_target():
     )
     stream = StringIO()
     _gen.write_dashboard(graph, stream)
-    assert stream.getvalue() != ''
+    assert stream.getvalue() != ""
 
 
 def test_serialization_zabbix_trigger_panel():
@@ -44,10 +44,9 @@ def test_serialization_zabbix_trigger_panel():
         title="Zabbix Triggers",
         dataSource="Zabbix data source",
         triggers=Z.ZabbixTrigger(
-            group='Zabbix Group',
-            application="",
-            trigger="/trigger.regexp/",
-            host="/zabbix.host/"))
+            group="Zabbix Group", application="", trigger="/trigger.regexp/", host="/zabbix.host/"
+        ),
+    )
     stream = StringIO()
     _gen.write_dashboard(graph, stream)
-    assert stream.getvalue() != ''
+    assert stream.getvalue() != ""

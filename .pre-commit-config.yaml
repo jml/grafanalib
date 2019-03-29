@@ -1,0 +1,41 @@
+---
+repos:
+  - repo: https://github.com/ambv/black
+    rev: 18.9b0
+    hooks:
+      - id: black
+        # Keep this up to date with the exclude list in pyproject.toml as well
+        exclude: >
+          (?x)(
+              /\.git/
+            | /migrations/
+            | /node_modules/
+            | _pb2\.py$
+            | _pb2_grpc\.py$
+          )
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v4.3.9
+    hooks:
+      - id: isort
+        additional_dependencies:
+          - toml
+        exclude: >
+          (?x)(
+              /migrations/
+            | _pb2\.py$
+          )
+
+  - repo: https://gitlab.com/PyCQA/flake8
+    rev: 3.7.7
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-pylint
+    rev: v2.3.0
+    hooks:
+      - id: pylint
+        additional_dependencies:
+          # pylint uses isort, which generates warnings if it finds a
+          # pyproject.toml but toml is not installed.
+          - toml
