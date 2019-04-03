@@ -2,14 +2,26 @@ from typing import List, Tuple
 
 import attr
 from attr.validators import in_, instance_of
-from grafanalib.core import BLANK, DEFAULT_ROW_HEIGHT, GREEN, RGBA, DashboardLink, Percent, Pixels
+from grafanalib.core import (
+    BLANK,
+    DEFAULT_ROW_HEIGHT,
+    GREEN,
+    RGBA,
+    DashboardLink,
+    Enum,
+    Percent,
+    Pixels,
+)
 from grafanalib.validators import is_color_code, is_interval, is_list_of
 
 ZABBIX_TRIGGERS_TYPE = "alexanderzobnin-zabbix-triggers-panel"
 
-ZABBIX_QMODE_METRICS = 0
-ZABBIX_QMODE_SERVICES = 1
-ZABBIX_QMODE_TEXT = 2
+
+class ZabbixMode(Enum):
+    METRICS = 0
+    SERVICES = 1
+    TEXT = 2
+
 
 ZABBIX_SLA_PROP_STATUS = {"name": "Status", "property": "status"}
 
@@ -93,7 +105,7 @@ class ZabbixTarget:
     intervalFactor = attr.ib(default=2, validator=instance_of(int))
     item = attr.ib(default="", validator=instance_of(str))
     itService = attr.ib(default="", validator=instance_of(str))
-    mode = attr.ib(default=ZABBIX_QMODE_METRICS, validator=instance_of(int))
+    mode = attr.ib(default=ZabbixMode.METRICS, validator=instance_of(ZabbixMode))
     options = attr.ib(
         default=attr.Factory(ZabbixTargetOptions), validator=instance_of(ZabbixTargetOptions)
     )
@@ -115,10 +127,10 @@ class ZabbixTarget:
             "options": self.options,
             "refId": self.refId,
         }
-        if self.mode == ZABBIX_QMODE_SERVICES:
+        if self.mode == ZabbixMode.SERVICES:
             obj["slaProperty"] = (self.slaProperty,)
             obj["itservice"] = {"name": self.itService}
-        if self.mode == ZABBIX_QMODE_TEXT:
+        if self.mode == ZabbixMode.TEXT:
             obj["textFilter"] = self.textFilter
             obj["useCaptureGroups"] = self.useCaptureGroups
         return obj
@@ -562,7 +574,7 @@ class ZabbixSetAliasByRegexFunction:
 def zabbixMetricTarget(application, group, host, item, functions=None):
     functions = functions if functions else []
     return ZabbixTarget(
-        mode=ZABBIX_QMODE_METRICS,
+        mode=ZabbixMode.METRICS,
         application=application,
         group=group,
         host=host,
@@ -574,12 +586,12 @@ def zabbixMetricTarget(application, group, host, item, functions=None):
 def zabbixServiceTarget(service, sla=None):
     if sla is None:
         sla = ZABBIX_SLA_PROP_STATUS
-    return ZabbixTarget(mode=ZABBIX_QMODE_SERVICES, itService=service, slaProperty=sla)
+    return ZabbixTarget(mode=ZabbixMode.SERVICES, itService=service, slaProperty=sla)
 
 
 def zabbixTextTarget(application, group, host, item, text, useCaptureGroups=False):
     return ZabbixTarget(
-        mode=ZABBIX_QMODE_TEXT,
+        mode=ZabbixMode.TEXT,
         application=application,
         group=group,
         host=host,

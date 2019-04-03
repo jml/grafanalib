@@ -1,53 +1,64 @@
 """Support for OpenTSDB."""
 
 import attr
-from attr.validators import in_, instance_of
+from attr.validators import instance_of
+from grafanalib.core import Enum
 
-# OpenTSDB aggregators
-OTSDB_AGG_AVG = "avg"
-OTSDB_AGG_COUNT = "count"
-OTSDB_AGG_DEV = "dev"
-OTSDB_AGG_EP50R3 = "ep50r3"
-OTSDB_AGG_EP50R7 = "ep50r7"
-OTSDB_AGG_EP75R3 = "ep75r3"
-OTSDB_AGG_EP75R7 = "ep75r7"
-OTSDB_AGG_EP90R3 = "ep90r3"
-OTSDB_AGG_EP90R7 = "ep90r7"
-OTSDB_AGG_EP95R3 = "ep95r3"
-OTSDB_AGG_EP95R7 = "ep95r7"
-OTSDB_AGG_EP99R3 = "ep99r3"
-OTSDB_AGG_EP99R7 = "ep99r7"
-OTSDB_AGG_EP999R3 = "ep999r3"
-OTSDB_AGG_EP999R7 = "ep999r7"
-OTSDB_AGG_FIRST = "first"
-OTSDB_AGG_LAST = "last"
-OTSDB_AGG_MIMMIN = "mimmin"
-OTSDB_AGG_MIMMAX = "mimmax"
-OTSDB_AGG_MIN = "min"
-OTSDB_AGG_MAX = "max"
-OTSDB_AGG_NONE = "none"
-OTSDB_AGG_P50 = "p50"
-OTSDB_AGG_P75 = "p75"
-OTSDB_AGG_P90 = "p90"
-OTSDB_AGG_P95 = "p95"
-OTSDB_AGG_P99 = "p99"
-OTSDB_AGG_P999 = "p999"
-OTSDB_AGG_SUM = "sum"
-OTSDB_AGG_ZIMSUM = "zimsum"
 
-OTSDB_DOWNSAMPLING_FILL_POLICIES = ("none", "nan", "null", "zero")
-OTSDB_DOWNSAMPLING_FILL_POLICY_DEFAULT = "none"
+class Aggregator(Enum):
+    AVG = "avg"
+    COUNT = "count"
+    DEV = "dev"
+    EP50R3 = "ep50r3"
+    EP50R7 = "ep50r7"
+    EP75R3 = "ep75r3"
+    EP75R7 = "ep75r7"
+    EP90R3 = "ep90r3"
+    EP90R7 = "ep90r7"
+    EP95R3 = "ep95r3"
+    EP95R7 = "ep95r7"
+    EP99R3 = "ep99r3"
+    EP99R7 = "ep99r7"
+    EP999R3 = "ep999r3"
+    EP999R7 = "ep999r7"
+    FIRST = "first"
+    LAST = "last"
+    MIMMIN = "mimmin"
+    MIMMAX = "mimmax"
+    MIN = "min"
+    MAX = "max"
+    NONE = "none"
+    P50 = "p50"
+    P75 = "p75"
+    P90 = "p90"
+    P95 = "p95"
+    P99 = "p99"
+    P999 = "p999"
+    SUM = "sum"
+    ZIMSUM = "zimsum"
 
-OTSDB_QUERY_FILTERS = (
-    "literal_or",
-    "iliteral_or",
-    "not_literal_or",
-    "not_iliteral_or",
-    "wildcard",
-    "iwildcard",
-    "regexp",
-)
-OTSDB_QUERY_FILTER_DEFAULT = "literal_or"
+
+class DownsamplingPolicy(Enum):
+    NONE = "none"
+    NAN = "nan"
+    NULL = "null"
+    ZERO = "zero"
+
+
+DEFAULT_DOWNSAMPLING_FILL_POLICY = DownsamplingPolicy.NONE
+
+
+class QueryFilter(Enum):
+    LITERAL_OR = "literal_or"
+    ILITERAL_OR = "iliteral_or"
+    NOT_LITERAL_OR = "not_literal_or"
+    NOT_ILITERAL_OR = "not_iliteral_or"
+    WILDCARD = "wildcard"
+    IWILDCARD = "iwildcard"
+    REGEXP = "regexp"
+
+
+DEFAULT_QUERY_FILTER = QueryFilter.LITERAL_OR
 
 
 @attr.s(frozen=True)
@@ -55,7 +66,7 @@ class OpenTSDBFilter:
 
     value = attr.ib()
     tag = attr.ib()
-    type = attr.ib(default=OTSDB_QUERY_FILTER_DEFAULT, validator=in_(OTSDB_QUERY_FILTERS))
+    type = attr.ib(default=DEFAULT_QUERY_FILTER, validator=instance_of(QueryFilter))
     groupBy = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
@@ -110,17 +121,16 @@ class OpenTSDBTarget:
     counterMax = attr.ib(default=None)
     counterResetValue = attr.ib(default=None)
     disableDownsampling = attr.ib(default=False, validator=instance_of(bool))
-    downsampleAggregator = attr.ib(default=OTSDB_AGG_SUM)
+    downsampleAggregator = attr.ib(default=Aggregator.SUM)
     downsampleFillPolicy = attr.ib(
-        default=OTSDB_DOWNSAMPLING_FILL_POLICY_DEFAULT,
-        validator=in_(OTSDB_DOWNSAMPLING_FILL_POLICIES),
+        default=DEFAULT_DOWNSAMPLING_FILL_POLICY, validator=instance_of(DownsamplingPolicy)
     )
     downsampleInterval = attr.ib(default=None)
     filters = attr.ib(default=attr.Factory(list))
     shouldComputeRate = attr.ib(default=False, validator=instance_of(bool))
     currentFilterGroupBy = attr.ib(default=False, validator=instance_of(bool))
     currentFilterKey = attr.ib(default="")
-    currentFilterType = attr.ib(default=OTSDB_QUERY_FILTER_DEFAULT)
+    currentFilterType = attr.ib(default=DEFAULT_QUERY_FILTER)
     currentFilterValue = attr.ib(default="")
 
     def to_json_data(self):

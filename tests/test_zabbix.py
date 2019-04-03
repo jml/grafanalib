@@ -23,8 +23,8 @@ def test_serialization_zabbix_target():
         ],
         id=1,
         yAxes=G.YAxes(
-            left=G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds / second"),
-            right=G.YAxis(format=G.SHORT_FORMAT),
+            left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),
+            right=G.YAxis(format=G.NumberFormat.SHORT),
         ),
     )
     stream = StringIO()

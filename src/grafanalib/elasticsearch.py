@@ -4,10 +4,14 @@ import itertools
 
 import attr
 from attr.validators import instance_of
+from grafanalib.core import Enum
 
 DATE_HISTOGRAM_DEFAULT_FIELD = "time_iso8601"
-ORDER_ASC = "asc"
-ORDER_DESC = "desc"
+
+
+class SortOrder(Enum):
+    ASC = "asc"
+    DESC = "desc"
 
 
 @attr.s(frozen=True)
@@ -112,7 +116,7 @@ class TermsGroupBy:
     :param id: ascending unique number per GroupBy clause
     :param field: name of the field to group by
     :param minDocCount: min. amount of matching records to return a result
-    :param order: ORDER_ASC or ORDER_DESC
+    :param order: SortOrder
     :param orderBy: term to order the bucker
     :param size: how many buckets are returned
     """
@@ -120,7 +124,7 @@ class TermsGroupBy:
     field = attr.ib(validator=instance_of(str))
     id = attr.ib(default=0, validator=instance_of(int))
     minDocCount = attr.ib(default=1, validator=instance_of(int))
-    order = attr.ib(default=ORDER_DESC, validator=instance_of(str))
+    order = attr.ib(default=SortOrder.DESC, validator=instance_of(SortOrder))
     orderBy = attr.ib(default="_term", validator=instance_of(str))
     size = attr.ib(default=0, validator=instance_of(int))
 

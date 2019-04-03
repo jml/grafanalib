@@ -4,7 +4,7 @@ from io import StringIO
 
 import grafanalib.core as G
 from grafanalib import _gen
-from grafanalib.opentsdb import OpenTSDBFilter, OpenTSDBTarget
+from grafanalib.opentsdb import OpenTSDBFilter, OpenTSDBTarget, QueryFilter
 
 
 def test_serialization_opentsdb_target():
@@ -16,13 +16,17 @@ def test_serialization_opentsdb_target():
             OpenTSDBTarget(
                 metric="cpu",
                 alias="$tag_instance",
-                filters=[OpenTSDBFilter(value="*", tag="instance", type="wildcard", groupBy=True)],
+                filters=[
+                    OpenTSDBFilter(
+                        value="*", tag="instance", type=QueryFilter.WILDCARD, groupBy=True
+                    )
+                ],
             )
         ],
         id=1,
         yAxes=G.YAxes(
-            left=G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds / second"),
-            right=G.YAxis(format=G.SHORT_FORMAT),
+            left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),
+            right=G.YAxis(format=G.NumberFormat.SHORT),
         ),
     )
     stream = StringIO()

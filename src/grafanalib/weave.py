@@ -46,7 +46,7 @@ def QPSGraph(data_source, title, expressions, **kwargs):
             title=title,
             expressions=exprs,
             aliasColors=ALIAS_COLORS,
-            yAxes=[G.YAxis(format=G.OPS_FORMAT), G.YAxis(format=G.SHORT_FORMAT)],
+            yAxes=[G.YAxis(format=G.OPS_FORMAT), G.YAxis(format=G.NumberFormat.SHORT)],
             **kwargs,
         )
     )

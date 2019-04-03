@@ -5,13 +5,14 @@ encourage it by way of some defaults. Rather, they are ways of building
 arbitrary Grafana JSON.
 """
 
+import enum
 import itertools
 import math
 import warnings
 from typing import Any, List, Optional, Tuple, Union
 
 import attr
-from attr.validators import in_, instance_of
+from attr.validators import instance_of
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -51,6 +52,183 @@ class Percent:
         return "{}%".format(self.num)
 
 
+class Enum(enum.Enum):
+    """Restricted set of scalars."""
+
+    def to_json_data(self):
+        return self.value
+
+
+class TooltipValueType(Enum):
+    INDIVIDUAL = "individual"
+    CUMULATIVE = "cumulative"
+
+
+class NullPointMode(Enum):
+    CONNECTED = "connected"
+    AS_ZERO = "null as zero"
+    AS_NULL = "null"
+
+
+class Renderer(Enum):
+    FLOT = "flot"
+
+
+class PanelType(Enum):
+    ABSOLUTE = "absolute"
+    ALERTLIST = "alertlist"
+    DASHBOARD = "dashboard"
+    GRAPH = "graph"
+    SINGLESTAT = "singlestat"
+    TABLE = "table"
+    TEXT = "text"
+
+
+class DashboardStyle(Enum):
+    DARK = "dark"
+    LIGHT = "light"
+
+
+class NumberFormat(Enum):
+    DURATION = "dtdurations"
+    NO = "none"
+    OPS = "ops"
+    PERCENT_UNIT = "percentunit"
+    DAYS = "d"
+    HOURS = "h"
+    MINUTES = "m"
+    SECONDS = "s"
+    MILLISECONDS = "ms"
+    SHORT = "short"
+    BYTES = "bytes"
+    BITS_PER_SEC = "bps"
+    BYTES_PER_SEC = "Bps"
+
+
+class AlertRuleState(Enum):
+    NO_DATA = "no_data"
+    ALERTING = "alerting"
+    KEEP_LAST_STATE = "keep_state"
+
+
+class EvaluatorType(Enum):
+    GT = "gt"
+    LT = "lt"
+    WITHIN_RANGE = "within_range"
+    OUTSIDE_RANGE = "outside_range"
+    NO_VALUE = "no_value"
+
+
+class ReducerType(Enum):
+    AVG = "avg"
+    MIN = "min"
+    MAX = "max"
+    SUM = "sum"
+    COUNT = "count"
+    LAST = "last"
+    MEDIAN = "median"
+
+
+class ConditionType(Enum):
+    QUERY = "query"
+
+
+class Operator(Enum):
+    AND = "and"
+    OR = "or"
+
+
+class TextMode(Enum):
+    MARKDOWN = "markdown"
+    HTML = "html"
+    TEXT = "text"
+
+
+class DatasourcePlugin(Enum):  # TODO: Double check this name
+    GRAPHITE = "graphite"
+    PROMETHEUS = "prometheus"
+    INFLUXDB = "influxdb"
+    OPENTSDB = "opentsdb"
+    ELASTICSEARCH = "elasticsearch"
+    CLOUDWATCH = "cloudwatch"
+
+
+class TargetFormat(Enum):
+    TIME_SERIES = "time_series"
+    TABLE = "table"
+
+
+class Transform(Enum):  # TODO: Double check this name
+    AGGREGATIONS = "timeseries_aggregations"
+    ANNOTATIONS = "annotations"
+    COLUMNS = "timeseries_to_columns"
+    JSON = "json"
+    ROWS = "timeseries_to_rows"
+    TABLE = "table"
+
+
+class AlertListShow(Enum):
+    CURRENT = "current"
+    CHANGES = "changes"
+
+
+class AlertListState(Enum):
+    OK = "ok"
+    PAUSED = "paused"
+    NO_DATA = "no_data"
+    EXECUTION_ERROR = "execution_error"
+    ALERTING = "alerting"
+
+
+class SortOrder(Enum):
+    ASC = 1
+    DESC = 2
+    IMPORTANCE = 3
+
+
+class Refresh(Enum):
+    NEVER = 0
+    ON_DASHBOARD_LOAD = 1
+    ON_TIME_RANGE_CHANGE = 2
+
+
+class TemplateHide(Enum):  # TODO: Double check this name
+    SHOW = 0
+    HIDE_LABEL = 1
+    HIDE_VARIABLE = 2
+
+
+class MappingType(Enum):
+    VALUE_TO_TEXT = 1
+    RANGE_TO_TEXT = 2
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class Mapping:
+
+    name: str
+    value: MappingType
+
+    def to_json_data(self):
+        return {"name": self.name, "value": self.value}
+
+
+MAPPING_VALUE_TO_TEXT = Mapping("value to text", MappingType.VALUE_TO_TEXT)
+MAPPING_RANGE_TO_TEXT = Mapping("range to text", MappingType.RANGE_TO_TEXT)
+
+
+class ValueType(Enum):
+    MIN = "min"
+    MAX = "max"
+    AVG = "avg"
+    CURR = "current"
+    TOTAL = "total"
+    NAME = "name"
+    FIRST = "first"
+    DELTA = "delta"
+    RANGE = "range"
+
+
 GREY1 = RGBA(216, 200, 27, 0.27)
 GREY2 = RGBA(234, 112, 112, 0.22)
 BLUE_RGBA = RGBA(31, 118, 189, 0.18)
@@ -60,161 +238,21 @@ ORANGE = RGBA(237, 129, 40, 0.89)
 RED = RGBA(245, 54, 54, 0.9)
 BLANK = RGBA(0, 0, 0, 0.0)
 
-INDIVIDUAL = "individual"
-CUMULATIVE = "cumulative"
-
-NULL_CONNECTED = "connected"
-NULL_AS_ZERO = "null as zero"
-NULL_AS_NULL = "null"
-
-FLOT = "flot"
-
-ABSOLUTE_TYPE = "absolute"
-DASHBOARD_TYPE = "dashboard"
-GRAPH_TYPE = "graph"
-SINGLESTAT_TYPE = "singlestat"
-TABLE_TYPE = "table"
-TEXT_TYPE = "text"
-ALERTLIST_TYPE = "alertlist"
-
 DEFAULT_FILL = 1
 DEFAULT_REFRESH = "10s"
 DEFAULT_ROW_HEIGHT = Pixels(250)
 DEFAULT_LINE_WIDTH = 2
 DEFAULT_POINT_RADIUS = 5
-DEFAULT_RENDERER = FLOT
+DEFAULT_RENDERER = Renderer.FLOT
 DEFAULT_STEP = 10
 DEFAULT_LIMIT = 10
 TOTAL_SPAN = 12
-
-DARK_STYLE = "dark"
-LIGHT_STYLE = "light"
 
 UTC = "utc"
 
 SCHEMA_VERSION = 12
 
-# Y Axis formats
-DURATION_FORMAT = "dtdurations"
-NO_FORMAT = "none"
-OPS_FORMAT = "ops"
-PERCENT_UNIT_FORMAT = "percentunit"
-DAYS_FORMAT = "d"
-HOURS_FORMAT = "h"
-MINUTES_FORMAT = "m"
-SECONDS_FORMAT = "s"
-MILLISECONDS_FORMAT = "ms"
-SHORT_FORMAT = "short"
-BYTES_FORMAT = "bytes"
-BITS_PER_SEC_FORMAT = "bps"
-BYTES_PER_SEC_FORMAT = "Bps"
-
-# Alert rule state
-STATE_NO_DATA = "no_data"
-STATE_ALERTING = "alerting"
-STATE_KEEP_LAST_STATE = "keep_state"
-
-# Evaluator
-EVAL_GT = "gt"
-EVAL_LT = "lt"
-EVAL_WITHIN_RANGE = "within_range"
-EVAL_OUTSIDE_RANGE = "outside_range"
-EVAL_NO_VALUE = "no_value"
-
-# Reducer Type avg/min/max/sum/count/last/median
-RTYPE_AVG = "avg"
-RTYPE_MIN = "min"
-RTYPE_MAX = "max"
-RTYPE_SUM = "sum"
-RTYPE_COUNT = "count"
-RTYPE_LAST = "last"
-RTYPE_MEDIAN = "median"
-
-# Condition Type
-CTYPE_QUERY = "query"
-
-# Operator
-OP_AND = "and"
-OP_OR = "or"
-
-# Text panel modes
-TEXT_MODE_MARKDOWN = "markdown"
-TEXT_MODE_HTML = "html"
-TEXT_MODE_TEXT = "text"
-
-# Datasource plugins
-PLUGIN_ID_GRAPHITE = "graphite"
-PLUGIN_ID_PROMETHEUS = "prometheus"
-PLUGIN_ID_INFLUXDB = "influxdb"
-PLUGIN_ID_OPENTSDB = "opentsdb"
-PLUGIN_ID_ELASTICSEARCH = "elasticsearch"
-PLUGIN_ID_CLOUDWATCH = "cloudwatch"
-
-# Target formats
-TIME_SERIES_TARGET_FORMAT = "time_series"
-TABLE_TARGET_FORMAT = "table"
-
-# Table Transforms
-AGGREGATIONS_TRANSFORM = "timeseries_aggregations"
-ANNOTATIONS_TRANSFORM = "annotations"
-COLUMNS_TRANSFORM = "timeseries_to_columns"
-JSON_TRANSFORM = "json"
-ROWS_TRANSFORM = "timeseries_to_rows"
-TABLE_TRANSFORM = "table"
-
-# AlertList show selections
-ALERTLIST_SHOW_CURRENT = "current"
-ALERTLIST_SHOW_CHANGES = "changes"
-
-# AlertList state filter options
-ALERTLIST_STATE_OK = "ok"
-ALERTLIST_STATE_PAUSED = "paused"
-ALERTLIST_STATE_NO_DATA = "no_data"
-ALERTLIST_STATE_EXECUTION_ERROR = "execution_error"
-ALERTLIST_STATE_ALERTING = "alerting"
-
-# Display Sort Order
-SORT_ASC = 1
-SORT_DESC = 2
-SORT_IMPORTANCE = 3
-
-# Template
-REFRESH_NEVER = 0
-REFRESH_ON_DASHBOARD_LOAD = 1
-REFRESH_ON_TIME_RANGE_CHANGE = 2
-SHOW = 0
-HIDE_LABEL = 1
-HIDE_VARIABLE = 2
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class Mapping:
-
-    name: str
-    value: int
-
-    def to_json_data(self):
-        return {"name": self.name, "value": self.value}
-
-
-MAPPING_TYPE_VALUE_TO_TEXT = 1
-MAPPING_TYPE_RANGE_TO_TEXT = 2
-
-MAPPING_VALUE_TO_TEXT = Mapping("value to text", MAPPING_TYPE_VALUE_TO_TEXT)
-MAPPING_RANGE_TO_TEXT = Mapping("range to text", MAPPING_TYPE_RANGE_TO_TEXT)
-
-
-# Value types min/max/avg/current/total/name/first/delta/range
-VTYPE_MIN = "min"
-VTYPE_MAX = "max"
-VTYPE_AVG = "avg"
-VTYPE_CURR = "current"
-VTYPE_TOTAL = "total"
-VTYPE_NAME = "name"
-VTYPE_FIRST = "first"
-VTYPE_DELTA = "delta"
-VTYPE_RANGE = "range"
-VTYPE_DEFAULT = VTYPE_AVG
+DEFAULT_VALUE_TYPE = ValueType.AVG
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -285,7 +323,7 @@ class Target:
     """
 
     expr = attr.ib(default="")
-    format = attr.ib(default=TIME_SERIES_TARGET_FORMAT)
+    format = attr.ib(default=TargetFormat.TIME_SERIES)
     legendFormat = attr.ib(default="")
     interval = attr.ib(default="", validator=instance_of(str))
     intervalFactor = attr.ib(default=2)
@@ -318,7 +356,7 @@ class Tooltip:
     msResolution = attr.ib(default=True, validator=instance_of(bool))
     shared = attr.ib(default=True, validator=instance_of(bool))
     sort = attr.ib(default=0)
-    valueType = attr.ib(default=CUMULATIVE)
+    valueType = attr.ib(default=TooltipValueType.CUMULATIVE)
 
     def to_json_data(self):
         return {
@@ -329,7 +367,7 @@ class Tooltip:
         }
 
 
-def is_valid_xaxis_mode(_instance, attribute, value):
+def is_valid_xaxis_mode(_instance, attribute, value):  # TODO: Make this an Enum
     XAXIS_MODES = ("time", "series")
     if value not in XAXIS_MODES:
         raise ValueError(
@@ -384,10 +422,10 @@ class YAxes:
     """
 
     left = attr.ib(
-        default=attr.Factory(lambda: YAxis(format=SHORT_FORMAT)), validator=instance_of(YAxis)
+        default=attr.Factory(lambda: YAxis(format=NumberFormat.SHORT)), validator=instance_of(YAxis)
     )
     right = attr.ib(
-        default=attr.Factory(lambda: YAxis(format=SHORT_FORMAT)), validator=instance_of(YAxis)
+        default=attr.Factory(lambda: YAxis(format=NumberFormat.SHORT)), validator=instance_of(YAxis)
     )
 
     def to_json_data(self):
@@ -526,7 +564,7 @@ class DashboardLink:
     uri = attr.ib()
     keepTime = attr.ib(default=True, validator=instance_of(bool))
     title = attr.ib(default=None)
-    type = attr.ib(default=DASHBOARD_TYPE)
+    type = attr.ib(default=PanelType.DASHBOARD)
 
     def to_json_data(self):
         title = self.dashboard if self.title is None else self.title
@@ -535,7 +573,7 @@ class DashboardLink:
             "dashboard": self.dashboard,
             "keepTime": self.keepTime,
             "title": title,
-            "type": self.type,
+            "type": self.type.to_json_data(),
             "url": self.uri,
         }
 
@@ -595,9 +633,9 @@ class Template:
     useTags = attr.ib(default=False, validator=instance_of(bool))
     tagsQuery = attr.ib(default=None)
     tagValuesQuery = attr.ib(default=None)
-    refresh = attr.ib(default=REFRESH_ON_DASHBOARD_LOAD, validator=instance_of(int))
+    refresh = attr.ib(default=Refresh.ON_DASHBOARD_LOAD, validator=instance_of(Refresh))
     type = attr.ib(default="query")
-    hide = attr.ib(default=SHOW)
+    hide = attr.ib(default=TemplateHide.SHOW)
 
     def to_json_data(self):
         return {
@@ -666,23 +704,23 @@ class Evaluator:
 
 
 def GreaterThan(value):
-    return Evaluator(EVAL_GT, [value])
+    return Evaluator(EvaluatorType.GT, [value])
 
 
 def LowerThan(value):
-    return Evaluator(EVAL_LT, [value])
+    return Evaluator(EvaluatorType.LT, [value])
 
 
 def WithinRange(from_value, to_value):
-    return Evaluator(EVAL_WITHIN_RANGE, [from_value, to_value])
+    return Evaluator(EvaluatorType.WITHIN_RANGE, [from_value, to_value])
 
 
 def OutsideRange(from_value, to_value):
-    return Evaluator(EVAL_OUTSIDE_RANGE, [from_value, to_value])
+    return Evaluator(EvaluatorType.OUTSIDE_RANGE, [from_value, to_value])
 
 
 def NoValue():
-    return Evaluator(EVAL_NO_VALUE, [])
+    return Evaluator(EvaluatorType.NO_VALUE, [])
 
 
 @attr.s(frozen=True)
@@ -727,7 +765,7 @@ class AlertCondition:
     timeRange = attr.ib(validator=instance_of(TimeRange))
     operator = attr.ib()
     reducerType = attr.ib()
-    type = attr.ib(default=CTYPE_QUERY)
+    type = attr.ib(default=ConditionType.QUERY)
 
     def to_json_data(self):
         queryParams = [self.target.refId, self.timeRange.from_time, self.timeRange.to_time]
@@ -746,10 +784,10 @@ class Alert:
     name = attr.ib()
     message = attr.ib()
     alertConditions = attr.ib()
-    executionErrorState = attr.ib(default=STATE_ALERTING)
+    executionErrorState = attr.ib(default=AlertRuleState.ALERTING)
     frequency = attr.ib(default="60s")
     handler = attr.ib(default=1)
-    noDataState = attr.ib(default=STATE_NO_DATA)
+    noDataState = attr.ib(default=AlertRuleState.NO_DATA)
     notifications = attr.ib(default=attr.Factory(list))
 
     def to_json_data(self):
@@ -780,7 +818,7 @@ class Dashboard:
     refresh = attr.ib(default=DEFAULT_REFRESH)
     schemaVersion = attr.ib(default=SCHEMA_VERSION)
     sharedCrosshair = attr.ib(default=False, validator=instance_of(bool))
-    style = attr.ib(default=DARK_STYLE)
+    style = attr.ib(default=DashboardStyle.DARK)
     tags = attr.ib(default=attr.Factory(list))
     templating = attr.ib(default=attr.Factory(Templating), validator=instance_of(Templating))
     time = attr.ib(default=attr.Factory(lambda: DEFAULT_TIME), validator=instance_of(Time))
@@ -867,7 +905,7 @@ class Graph:
     lineWidth = attr.ib(default=DEFAULT_LINE_WIDTH)
     links = attr.ib(default=attr.Factory(list))
     minSpan = attr.ib(default=None)
-    nullPointMode = attr.ib(default=NULL_CONNECTED)
+    nullPointMode = attr.ib(default=NullPointMode.CONNECTED)
     percentage = attr.ib(default=False, validator=instance_of(bool))
     pointRadius = attr.ib(default=DEFAULT_POINT_RADIUS)
     points = attr.ib(default=False, validator=instance_of(bool))
@@ -919,7 +957,7 @@ class Graph:
             "title": self.title,
             "tooltip": self.tooltip,
             "transparent": self.transparent,
-            "type": GRAPH_TYPE,
+            "type": PanelType.GRAPH,
             "xaxis": self.xAxis,
             "yaxes": self.yAxes,
         }
@@ -993,7 +1031,7 @@ class Text:
     height = attr.ib(default=None)
     id = attr.ib(default=None)
     links = attr.ib(default=attr.Factory(list))
-    mode = attr.ib(default=TEXT_MODE_MARKDOWN)
+    mode = attr.ib(default=TextMode.MARKDOWN)
     span = attr.ib(default=None)
     title = attr.ib(default="")
     transparent = attr.ib(default=False, validator=instance_of(bool))
@@ -1010,7 +1048,7 @@ class Text:
             "span": self.span,
             "title": self.title,
             "transparent": self.transparent,
-            "type": TEXT_TYPE,
+            "type": PanelType.TEXT,
         }
 
 
@@ -1023,8 +1061,8 @@ class AlertList:
     limit = attr.ib(default=DEFAULT_LIMIT)
     links = attr.ib(default=attr.Factory(list))
     onlyAlertsOnDashboard = attr.ib(default=True, validator=instance_of(bool))
-    show = attr.ib(default=ALERTLIST_SHOW_CURRENT)
-    sortOrder = attr.ib(default=SORT_ASC, validator=in_([1, 2, 3]))
+    show = attr.ib(default=AlertListShow.CURRENT, validator=instance_of(AlertListShow))
+    sortOrder = attr.ib(default=SortOrder.ASC, validator=instance_of(SortOrder))
     stateFilter = attr.ib(default=attr.Factory(list))
     title = attr.ib(default="")
     transparent = attr.ib(default=False, validator=instance_of(bool))
@@ -1041,7 +1079,7 @@ class AlertList:
             "stateFilter": self.stateFilter,
             "title": self.title,
             "transparent": self.transparent,
-            "type": ALERTLIST_TYPE,
+            "type": PanelType.ALERTLIST,
         }
 
 
@@ -1114,7 +1152,7 @@ class SingleStat:
     id = attr.ib(default=None)
     interval = attr.ib(default=None)
     links = attr.ib(default=attr.Factory(list))
-    mappingType = attr.ib(default=MAPPING_TYPE_VALUE_TO_TEXT)
+    mappingType = attr.ib(default=MappingType.VALUE_TO_TEXT)
     mappingTypes = attr.ib(
         default=attr.Factory(lambda: [MAPPING_VALUE_TO_TEXT, MAPPING_RANGE_TO_TEXT])
     )
@@ -1133,7 +1171,7 @@ class SingleStat:
     thresholds = attr.ib(default="")
     transparent = attr.ib(default=False, validator=instance_of(bool))
     valueFontSize = attr.ib(default="80%")
-    valueName = attr.ib(default=VTYPE_DEFAULT)
+    valueName = attr.ib(default=DEFAULT_VALUE_TYPE)
     valueMaps = attr.ib(default=attr.Factory(list))
     timeFrom = attr.ib(default=None)
 
@@ -1172,7 +1210,7 @@ class SingleStat:
             "thresholds": self.thresholds,
             "title": self.title,
             "transparent": self.transparent,
-            "type": SINGLESTAT_TYPE,
+            "type": PanelType.SINGLESTAT,
             "valueFontSize": self.valueFontSize,
             "valueMaps": self.valueMaps,
             "valueName": self.valueName,
@@ -1198,7 +1236,7 @@ class NumberColumnStyleType:
     colors = attr.ib(default=attr.Factory(lambda: [GREEN, ORANGE, RED]))
     thresholds = attr.ib(default=attr.Factory(list))
     decimals = attr.ib(default=2, validator=instance_of(int))
-    unit = attr.ib(default=SHORT_FORMAT)
+    unit = attr.ib(default=NumberFormat.SHORT)
 
     def to_json_data(self):
         return {
@@ -1349,7 +1387,7 @@ class Table:
     styles = attr.ib()
     timeFrom = attr.ib(default=None)
 
-    transform = attr.ib(default=COLUMNS_TRANSFORM)
+    transform = attr.ib(default=Transform.COLUMNS)
     transparent = attr.ib(default=False, validator=instance_of(bool))
 
     @styles.default
@@ -1400,5 +1438,5 @@ class Table:
             "title": self.title,
             "transform": self.transform,
             "transparent": self.transparent,
-            "type": TABLE_TYPE,
+            "type": PanelType.TABLE,
         }

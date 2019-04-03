@@ -22,8 +22,8 @@ def test_serialization():
         ],
         id=1,
         yAxes=G.YAxes(
-            left=G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds / second"),
-            right=G.YAxis(format=G.SHORT_FORMAT),
+            left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),
+            right=G.YAxis(format=G.NumberFormat.SHORT),
         ),
     )
     stream = StringIO()
@@ -45,8 +45,8 @@ def test_auto_id():
                             G.Target(expr="whatever", legendFormat="{{namespace}}", refId="A")
                         ],
                         yAxes=G.YAxes(
-                            left=G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds"),
-                            right=G.YAxis(format=G.SHORT_FORMAT),
+                            left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds"),
+                            right=G.YAxis(format=G.NumberFormat.SHORT),
                         ),
                     )
                 ]
