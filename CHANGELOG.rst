@@ -13,7 +13,7 @@ Breaking changes
 
 * Python 3.7 is now the only supported version
 * All classes are immutable
-
+* Almost all validators have been replaced with type checks
 
 
 0.5.2 (2018-07-19)

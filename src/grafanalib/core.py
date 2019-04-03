@@ -8,36 +8,36 @@ arbitrary Grafana JSON.
 import itertools
 import math
 import warnings
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import attr
 from attr.validators import in_, instance_of
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class RGBA:
-    r = attr.ib(validator=instance_of(int))
-    g = attr.ib(validator=instance_of(int))
-    b = attr.ib(validator=instance_of(int))
-    a = attr.ib(validator=instance_of(float))
+    r: int
+    g: int
+    b: int
+    a: float
 
     def to_json_data(self):
         return "rgba({}, {}, {}, {})".format(self.r, self.g, self.b, self.a)
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class RGB:
-    r = attr.ib(validator=instance_of(int))
-    g = attr.ib(validator=instance_of(int))
-    b = attr.ib(validator=instance_of(int))
+    r: int
+    g: int
+    b: int
 
     def to_json_data(self):
         return "rgb({}, {}, {})".format(self.r, self.g, self.b)
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class Pixels:
-    num = attr.ib(validator=instance_of(int))
+    num: int
 
     def to_json_data(self):
         return "{}px".format(self.num)
@@ -187,11 +187,11 @@ HIDE_LABEL = 1
 HIDE_VARIABLE = 2
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class Mapping:
 
-    name = attr.ib()
-    value = attr.ib(validator=instance_of(int))
+    name: str
+    value: int
 
     def to_json_data(self):
         return {"name": self.name, "value": self.value}
@@ -217,13 +217,13 @@ VTYPE_RANGE = "range"
 VTYPE_DEFAULT = VTYPE_AVG
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class Grid:
 
-    threshold1 = attr.ib(default=None)
-    threshold1Color = attr.ib(default=attr.Factory(lambda: GREY1), validator=instance_of(RGBA))
-    threshold2 = attr.ib(default=None)
-    threshold2Color = attr.ib(default=attr.Factory(lambda: GREY2), validator=instance_of(RGBA))
+    threshold1: Optional[float] = None
+    threshold1Color: RGBA = GREY1
+    threshold2: Optional[float] = None
+    threshold2Color: RGBA = GREY2
 
     def to_json_data(self):
         return {
