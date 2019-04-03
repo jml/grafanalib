@@ -50,7 +50,7 @@ OTSDB_QUERY_FILTERS = (
 OTSDB_QUERY_FILTER_DEFAULT = "literal_or"
 
 
-@attr.s
+@attr.s(frozen=True)
 class OpenTSDBFilter:
 
     value = attr.ib()
@@ -62,7 +62,7 @@ class OpenTSDBFilter:
         return {"filter": self.value, "tagk": self.tag, "type": self.type, "groupBy": self.groupBy}
 
 
-@attr.s
+@attr.s(frozen=True)
 class OpenTSDBTarget:
     """Generates OpenTSDB target JSON structure.
 

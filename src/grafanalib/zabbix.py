@@ -35,7 +35,7 @@ ZABBIX_SORT_TRIGGERS_BY_CHANGE = {"text": "last change", "value": "lastchange"}
 ZABBIX_SORT_TRIGGERS_BY_SEVERITY = {"text": "severity", "value": "priority"}
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTargetOptions:
     showDisabledItems = attr.ib(default=False, validator=instance_of(bool))
 
@@ -43,7 +43,7 @@ class ZabbixTargetOptions:
         return {"showDisabledItems": self.showDisabledItems}
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTargetField:
     filter = attr.ib(default="", validator=instance_of(str))
 
@@ -51,7 +51,7 @@ class ZabbixTargetField:
         return {"filter": self.filter}
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTarget:
     """Generates Zabbix datasource target JSON structure.
 
@@ -124,7 +124,7 @@ class ZabbixTarget:
         return obj
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixDeltaFunction:
     """ZabbixDeltaFunction
 
@@ -140,7 +140,7 @@ class ZabbixDeltaFunction:
         return {"added": self.added, "text": text, "def": definition, "params": []}
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixGroupByFunction:
     """ZabbixGroupByFunction
 
@@ -176,7 +176,7 @@ class ZabbixGroupByFunction:
         }
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ZabbixScaleFunction:
     """ZabbixScaleFunction
 
@@ -205,7 +205,7 @@ class ZabbixScaleFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixAggregateByFunction:
     """ZabbixAggregateByFunction
 
@@ -242,7 +242,7 @@ class ZabbixAggregateByFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixAverageFunction:
     """ZabbixAverageFunction
 
@@ -271,7 +271,7 @@ class ZabbixAverageFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixMaxFunction:
     """ZabbixMaxFunction
 
@@ -300,7 +300,7 @@ class ZabbixMaxFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixMedianFunction:
     """ZabbixMedianFunction
 
@@ -329,7 +329,7 @@ class ZabbixMedianFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixMinFunction:
     """ZabbixMinFunction
 
@@ -358,7 +358,7 @@ class ZabbixMinFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixSumSeriesFunction:
     """ZabbixSumSeriesFunction
 
@@ -382,7 +382,7 @@ class ZabbixSumSeriesFunction:
         return {"added": self.added, "text": text, "def": definition, "params": []}
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixBottomFunction:
 
     _options = ("avg", "min", "max", "median")
@@ -412,7 +412,7 @@ class ZabbixBottomFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTopFunction:
 
     _options = ("avg", "min", "max", "median")
@@ -442,7 +442,7 @@ class ZabbixTopFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTrendValueFunction:
     """ZabbixTrendValueFunction
 
@@ -472,7 +472,7 @@ class ZabbixTrendValueFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTimeShiftFunction:
     """ZabbixTimeShiftFunction
 
@@ -505,7 +505,7 @@ class ZabbixTimeShiftFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixSetAliasFunction:
     """ZabbixSetAliasFunction
 
@@ -532,7 +532,7 @@ class ZabbixSetAliasFunction:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixSetAliasByRegexFunction:
     """ZabbixSetAliasByRegexFunction
 
@@ -589,7 +589,7 @@ def zabbixTextTarget(application, group, host, item, text, useCaptureGroups=Fals
     )
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixColor:
     color = attr.ib(validator=is_color_code)
     priority = attr.ib(validator=instance_of(int))
@@ -628,7 +628,7 @@ ZABBIX_SEVERITY_COLORS = convertZabbixSeverityColors(
 )
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTrigger:
 
     application = attr.ib(default="", validator=instance_of(str))
@@ -645,7 +645,7 @@ class ZabbixTrigger:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ZabbixTriggersPanel:
     """ZabbixTriggersPanel
 

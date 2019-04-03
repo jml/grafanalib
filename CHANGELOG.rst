@@ -12,6 +12,7 @@ Breaking changes
 ----------------
 
 * Python 3.7 is now the only supported version
+* All classes are immutable
 
 
 

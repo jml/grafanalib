@@ -10,7 +10,7 @@ ORDER_ASC = "asc"
 ORDER_DESC = "desc"
 
 
-@attr.s
+@attr.s(frozen=True)
 class CountMetricAgg:
     """An aggregator that counts the number of values.
 
@@ -23,7 +23,7 @@ class CountMetricAgg:
         return {"type": "count", "field": "select field", "settings": {}}
 
 
-@attr.s
+@attr.s(frozen=True)
 class MaxMetricAgg:
     """An aggregator that provides the max. value among the values.
 
@@ -38,7 +38,7 @@ class MaxMetricAgg:
         return {"type": "max", "field": self.field, "settings": {}}
 
 
-@attr.s
+@attr.s(frozen=True)
 class DateHistogramGroupBy:
     """A bucket aggregator that groups results by date.
 
@@ -69,7 +69,7 @@ class DateHistogramGroupBy:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Filter:
     """ A Filter for a FilterGroupBy aggregator.
 
@@ -86,7 +86,7 @@ class Filter:
         return {"label": self.label, "query": self.query}
 
 
-@attr.s
+@attr.s(frozen=True)
 class FiltersGroupBy:
     """ A bucket aggregator that groups records by a filter expression.
 
@@ -103,7 +103,7 @@ class FiltersGroupBy:
         return {"id": str(self.id), "settings": {"filters": self.filters}, "type": "filters"}
 
 
-@attr.s
+@attr.s(frozen=True)
 class TermsGroupBy:
     """ A multi-bucket aggregator based on field values.
 
@@ -138,7 +138,7 @@ class TermsGroupBy:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ElasticsearchTarget:
     """Generates Elasticsearch target JSON structure.
 

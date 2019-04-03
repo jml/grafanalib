@@ -14,7 +14,7 @@ import attr
 from attr.validators import in_, instance_of
 
 
-@attr.s
+@attr.s(frozen=True)
 class RGBA:
     r = attr.ib(validator=instance_of(int))
     g = attr.ib(validator=instance_of(int))
@@ -25,7 +25,7 @@ class RGBA:
         return "rgba({}, {}, {}, {})".format(self.r, self.g, self.b, self.a)
 
 
-@attr.s
+@attr.s(frozen=True)
 class RGB:
     r = attr.ib(validator=instance_of(int))
     g = attr.ib(validator=instance_of(int))
@@ -35,7 +35,7 @@ class RGB:
         return "rgb({}, {}, {})".format(self.r, self.g, self.b)
 
 
-@attr.s
+@attr.s(frozen=True)
 class Pixels:
     num = attr.ib(validator=instance_of(int))
 
@@ -43,7 +43,7 @@ class Pixels:
         return "{}px".format(self.num)
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, frozen=True)
 class Percent:
     num: float = 100.0
 
@@ -187,7 +187,7 @@ HIDE_LABEL = 1
 HIDE_VARIABLE = 2
 
 
-@attr.s
+@attr.s(frozen=True)
 class Mapping:
 
     name = attr.ib()
@@ -217,7 +217,7 @@ VTYPE_RANGE = "range"
 VTYPE_DEFAULT = VTYPE_AVG
 
 
-@attr.s
+@attr.s(frozen=True)
 class Grid:
 
     threshold1 = attr.ib(default=None)
@@ -234,7 +234,7 @@ class Grid:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Legend:
     avg = attr.ib(default=False, validator=instance_of(bool))
     current = attr.ib(default=False, validator=instance_of(bool))
@@ -276,7 +276,7 @@ class Legend:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Target:
     """
     Metric to show.
@@ -312,7 +312,7 @@ class Target:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Tooltip:
 
     msResolution = attr.ib(default=True, validator=instance_of(bool))
@@ -337,7 +337,7 @@ def is_valid_xaxis_mode(_instance, attribute, value):
         )
 
 
-@attr.s
+@attr.s(frozen=True)
 class XAxis:
 
     mode = attr.ib(default="time", validator=is_valid_xaxis_mode)
@@ -349,7 +349,7 @@ class XAxis:
         return {"show": self.show}
 
 
-@attr.s
+@attr.s(frozen=True)
 class YAxis:
     """A single Y axis.
 
@@ -376,7 +376,7 @@ class YAxis:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class YAxes:
     """The pair of Y axes on a Grafana graph.
 
@@ -437,7 +437,7 @@ def _balance_panels(panels: List[Any]) -> List[Any]:
     return [attr.evolve(panel, span=auto_span) if panel.span is None else panel for panel in panels]
 
 
-@attr.s
+@attr.s(frozen=True)
 class Row:
     # TODO: jml would like to separate the balancing behaviour from this
     # layer.
@@ -476,7 +476,7 @@ class Row:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Annotations:
     list = attr.ib(default=attr.Factory(list))
 
@@ -484,7 +484,7 @@ class Annotations:
         return {"list": self.list}
 
 
-@attr.s
+@attr.s(frozen=True)
 class DataSourceInput:
     name = attr.ib()
     label = attr.ib()
@@ -503,7 +503,7 @@ class DataSourceInput:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ConstantInput:
     name = attr.ib()
     label = attr.ib()
@@ -520,7 +520,7 @@ class ConstantInput:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class DashboardLink:
     dashboard = attr.ib()
     uri = attr.ib()
@@ -540,7 +540,7 @@ class DashboardLink:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ExternalLink:
     """ExternalLink creates a top-level link attached to a dashboard.
 
@@ -558,7 +558,7 @@ class ExternalLink:
         return {"keepTime": self.keepTime, "title": self.title, "type": "link", "url": self.uri}
 
 
-@attr.s
+@attr.s(frozen=True)
 class Template:
     """Template create a new 'variable' for the dashboard, defines the variable
     name, human name, query to fetch the values and the default value.
@@ -621,7 +621,7 @@ class Template:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Templating:
     list = attr.ib(default=attr.Factory(list))
 
@@ -629,7 +629,7 @@ class Templating:
         return {"list": self.list}
 
 
-@attr.s
+@attr.s(frozen=True)
 class Time:
     start = attr.ib()
     end = attr.ib()
@@ -641,7 +641,7 @@ class Time:
 DEFAULT_TIME = Time("now-1h", "now")
 
 
-@attr.s
+@attr.s(frozen=True)
 class TimePicker:
     refreshIntervals = attr.ib()
     timeOptions = attr.ib()
@@ -656,7 +656,7 @@ DEFAULT_TIME_PICKER = TimePicker(
 )
 
 
-@attr.s
+@attr.s(frozen=True)
 class Evaluator:
     type = attr.ib()
     params = attr.ib()
@@ -685,7 +685,7 @@ def NoValue():
     return Evaluator(EVAL_NO_VALUE, [])
 
 
-@attr.s
+@attr.s(frozen=True)
 class TimeRange:
     """A time range for an alert condition.
 
@@ -704,7 +704,7 @@ class TimeRange:
         return [self.from_time, self.to_time]
 
 
-@attr.s
+@attr.s(frozen=True)
 class AlertCondition:
     """
     A condition on an alert.
@@ -740,7 +740,7 @@ class AlertCondition:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Alert:
 
     name = attr.ib()
@@ -765,7 +765,7 @@ class Alert:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Dashboard:
 
     title = attr.ib()
@@ -840,7 +840,7 @@ class Dashboard:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Graph:
     """
     Generates Graph panel json structure.
@@ -928,7 +928,7 @@ class Graph:
         return graphObject
 
 
-@attr.s
+@attr.s(frozen=True)
 class SparkLine:
     fillColor = attr.ib(default=attr.Factory(lambda: BLUE_RGBA), validator=instance_of(RGBA))
     full = attr.ib(default=False, validator=instance_of(bool))
@@ -944,7 +944,7 @@ class SparkLine:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class ValueMap:
     op = attr.ib()
     text = attr.ib()
@@ -954,7 +954,7 @@ class ValueMap:
         return {"op": self.op, "text": self.text, "value": self.value}
 
 
-@attr.s
+@attr.s(frozen=True)
 class RangeMap:
     start = attr.ib()
     end = attr.ib()
@@ -983,7 +983,7 @@ class Gauge:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class Text:
     """Generates a Text panel."""
 
@@ -1014,7 +1014,7 @@ class Text:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class AlertList:
     """Generates the AlertList Panel."""
 
@@ -1045,7 +1045,7 @@ class AlertList:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class SingleStat:
     """Generates Single Stat panel json structure
 
@@ -1180,7 +1180,7 @@ class SingleStat:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class DateColumnStyleType:
     TYPE = "date"
 
@@ -1190,7 +1190,7 @@ class DateColumnStyleType:
         return {"dateFormat": self.dateFormat, "type": self.TYPE}
 
 
-@attr.s
+@attr.s(frozen=True)
 class NumberColumnStyleType:
     TYPE = "number"
 
@@ -1211,7 +1211,7 @@ class NumberColumnStyleType:
         }
 
 
-@attr.s
+@attr.s(frozen=True)
 class StringColumnStyleType:
     TYPE = "string"
 
@@ -1222,7 +1222,7 @@ class StringColumnStyleType:
         return {"preserveFormat": self.preserveFormat, "sanitize": self.sanitize, "type": self.TYPE}
 
 
-@attr.s
+@attr.s(frozen=True)
 class HiddenColumnStyleType:
     TYPE = "hidden"
 
@@ -1235,7 +1235,7 @@ ColumnStyleTypes = Union[
 ]
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ColumnStyle:
 
     alias: str = ""
@@ -1248,7 +1248,7 @@ class ColumnStyle:
         return data
 
 
-@attr.s
+@attr.s(frozen=True)
 class ColumnSort:
     col = attr.ib(default=None)
     desc = attr.ib(default=False, validator=instance_of(bool))
@@ -1257,7 +1257,7 @@ class ColumnSort:
         return {"col": self.col, "desc": self.desc}
 
 
-@attr.s
+@attr.s(frozen=True)
 class Column:
     """Details of an aggregation column in a table panel.
 
@@ -1300,7 +1300,7 @@ def _style_columns(columns):
     return new_columns, styles
 
 
-@attr.s
+@attr.s(frozen=True)
 class Table:
     """Generates Table panel json structure
 

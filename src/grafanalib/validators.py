@@ -34,7 +34,7 @@ def is_color_code(_instance, attribute, value):
         raise ValueError(err)
 
 
-@attr.attributes(repr=False, slots=True)
+@attr.attributes(repr=False, slots=True, frozen=True)
 class _ListOfValidator:
     etype = attr.attr()
 
