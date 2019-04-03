@@ -1,9 +1,13 @@
 import re
+from typing import Any, List, TypeVar
 
 import attr
+from attr import Attribute
+
+T = TypeVar("T")
 
 
-def is_interval(_instance, _attribute, value):
+def is_interval(_instance: Any, _attribute: "Attribute[str]", value: str) -> Any:
     """
     A validator that raises a :exc:`ValueError` if the attribute value is not
     matching regular expression.
@@ -16,7 +20,7 @@ def is_interval(_instance, _attribute, value):
         )
 
 
-def is_color_code(_instance, attribute, value):
+def is_color_code(_instance: Any, attribute: "Attribute[str]", value: str) -> Any:
     """
     A validator that raises a :exc:`ValueError` if attribute value
     is not valid color code.
@@ -34,11 +38,11 @@ def is_color_code(_instance, attribute, value):
         raise ValueError(err)
 
 
-@attr.attributes(repr=False, slots=True, frozen=True)
+@attr.s(auto_attribs=True, repr=False, slots=True, frozen=True)
 class _ListOfValidator:
-    etype = attr.attr()
+    etype: type
 
-    def __call__(self, inst, attribute, value):
+    def __call__(self, inst: Any, attribute: "Attribute[List[T]]", value: List[T]) -> Any:
         if False in set(map(lambda el: isinstance(el, self.etype), value)):
             raise ValueError(
                 "{attr} should be list of {etype}".format(attr=attribute.name, etype=self.etype)
@@ -48,7 +52,7 @@ class _ListOfValidator:
         return "<is value is the list of {etype}>".format(etype=self.etype)
 
 
-def is_list_of(etype):
+def is_list_of(etype: type):
     """
     A validator that raises a :exc:`ValueError` if the attribute value is not
     in a provided list.
@@ -56,3 +60,6 @@ def is_list_of(etype):
     :param choices: List of valid choices
     """
     return _ListOfValidator(etype)
+
+
+Attribute  # pylint: disable=pointless-statement
