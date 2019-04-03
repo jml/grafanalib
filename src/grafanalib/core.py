@@ -434,7 +434,7 @@ def _balance_panels(panels: List[Any]) -> List[Any]:
     allotted_spans = sum(panel.span if panel.span else 0 for panel in panels)
     no_span_set = [panel for panel in panels if panel.span is None]
     auto_span = math.ceil((TOTAL_SPAN - allotted_spans) / (len(no_span_set) or 1))
-    return [attr.assoc(panel, span=auto_span) if panel.span is None else panel for panel in panels]
+    return [attr.evolve(panel, span=auto_span) if panel.span is None else panel for panel in panels]
 
 
 @attr.s
@@ -455,7 +455,7 @@ class Row:
         return iter(self.panels)
 
     def map_panels(self, f):
-        return attr.assoc(self, panels=list(map(f, self.panels)))
+        return attr.evolve(self, panels=list(map(f, self.panels)))
 
     def to_json_data(self):
         showTitle = False
@@ -797,7 +797,7 @@ class Dashboard:
                 yield panel
 
     def map_panels(self, f):
-        return attr.assoc(self, rows=[r.map_panels(f) for r in self.rows])
+        return attr.evolve(self, rows=[r.map_panels(f) for r in self.rows])
 
     def auto_panel_ids(self):
         """Give unique IDs all the panels without IDs.
@@ -811,7 +811,7 @@ class Dashboard:
         auto_ids = (i for i in itertools.count(1) if i not in ids)
 
         def set_id(panel):
-            return panel if panel.id else attr.assoc(panel, id=next(auto_ids))
+            return panel if panel.id else attr.evolve(panel, id=next(auto_ids))
 
         return self.map_panels(set_id)
 
