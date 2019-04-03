@@ -22,10 +22,10 @@ def test_serialization_zabbix_target():
             )
         ],
         id=1,
-        yAxes=[
-            G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds / second"),
-            G.YAxis(format=G.SHORT_FORMAT),
-        ],
+        yAxes=G.YAxes(
+            left=G.YAxis(format=G.SHORT_FORMAT, label="CPU seconds / second"),
+            right=G.YAxis(format=G.SHORT_FORMAT),
+        ),
     )
     stream = StringIO()
     _gen.write_dashboard(graph, stream)
