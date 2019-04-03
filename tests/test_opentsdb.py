@@ -1,15 +1,10 @@
 """Tests for OpenTSDB datasource"""
 
-import sys
+from io import StringIO
 
 import grafanalib.core as G
 from grafanalib import _gen
 from grafanalib.opentsdb import OpenTSDBFilter, OpenTSDBTarget
-
-if sys.version_info[0] < 3:
-    from io import BytesIO as StringIO
-else:
-    from io import StringIO
 
 
 def test_serialization_opentsdb_target():

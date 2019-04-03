@@ -1,14 +1,9 @@
 """Tests for Grafanalib."""
 
-import sys
+from io import StringIO
 
 import grafanalib.core as G
 from grafanalib import _gen
-
-if sys.version_info[0] < 3:
-    from io import BytesIO as StringIO
-else:
-    from io import StringIO
 
 # TODO: Use Hypothesis to generate a more thorough battery of smoke tests.
 
