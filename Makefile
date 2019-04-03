@@ -14,7 +14,7 @@ test:  ## Run the tests without coverage
 	pipenv run coverage run -m pytest -q tests
 
 coverage: .coverage
-	pipenv run coverage report --fail-under=1 --show-missing
+	pipenv run coverage report --fail-under=80 --show-missing
 
 check: lint type-check coverage  ## All the checks run in CI
 
