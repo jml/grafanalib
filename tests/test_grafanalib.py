@@ -11,7 +11,7 @@ from grafanalib import _gen
 def test_serialization():
     """Serializing a graph doesn't explode."""
     graph = G.Graph(
-        title="CPU Usage by Namespace (rate[5m])",
+        panel=G.Panel(title="CPU Usage by Namespace (rate[5m])"),
         dataSource="My data source",
         targets=[
             G.Target(
@@ -20,7 +20,6 @@ def test_serialization():
                 refId="A",
             )
         ],
-        id=1,
         yAxes=G.YAxes(
             left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),
             right=G.YAxis(format=G.NumberFormat.SHORT),
@@ -39,7 +38,7 @@ def test_auto_id():
             G.Row(
                 panels=[
                     G.Graph(
-                        title="CPU Usage by Namespace (rate[5m])",
+                        G.Panel(title="CPU Usage by Namespace (rate[5m])"),
                         dataSource="My data source",
                         targets=[
                             G.Target(expr="whatever", legendFormat="{{namespace}}", refId="A")
@@ -53,7 +52,7 @@ def test_auto_id():
             )
         ],
     ).auto_panel_ids()
-    assert dashboard.rows[0].panels[0].id == 1
+    assert dashboard.rows[0].panels[0].panel.id == 1
 
 
 def test_row_show_title():

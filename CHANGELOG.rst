@@ -16,7 +16,8 @@ Breaking changes
 * Almost all validators have been replaced with type checks
 * All groups of constants have been replaced with enums (e.g. ``SHORT_FORMAT``
   is now ``NumberFormat.SHORT``)
-
+* Attributes common to all panels are now in a dedicated ``Panel`` class
+* Grafana 6.0 is the only supported version
 
 0.5.2 (2018-07-19)
 ==================

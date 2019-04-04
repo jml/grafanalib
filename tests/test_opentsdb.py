@@ -10,7 +10,7 @@ from grafanalib.opentsdb import OpenTSDBFilter, OpenTSDBTarget, QueryFilter
 def test_serialization_opentsdb_target():
     """Serializing a graph doesn't explode."""
     graph = G.Graph(
-        title="CPU Usage",
+        panel=G.Panel(title="CPU Usage"),
         dataSource="OpenTSDB data source",
         targets=[
             OpenTSDBTarget(
@@ -23,7 +23,6 @@ def test_serialization_opentsdb_target():
                 ],
             )
         ],
-        id=1,
         yAxes=G.YAxes(
             left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),
             right=G.YAxis(format=G.NumberFormat.SHORT),

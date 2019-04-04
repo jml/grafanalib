@@ -45,7 +45,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.5",
         "Topic :: System :: Monitoring",
     ],
-    install_requires=["attrs"],
+    install_requires=["attrs", "typing-extensions"],
     python_requires=">=3.7",
     entry_points={
         "console_scripts": [

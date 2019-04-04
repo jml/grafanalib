@@ -10,7 +10,7 @@ from grafanalib import _gen
 def test_serialization_zabbix_target():
     """Serializing a graph doesn't explode."""
     graph = G.Graph(
-        title="CPU Usage",
+        panel=G.Panel(title="CPU Usage"),
         dataSource="Zabbix data source",
         targets=[
             Z.zabbixMetricTarget(
@@ -21,7 +21,6 @@ def test_serialization_zabbix_target():
                 functions=[Z.ZabbixSetAliasFunction("View alias")],
             )
         ],
-        id=1,
         yAxes=G.YAxes(
             left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),
             right=G.YAxis(format=G.NumberFormat.SHORT),

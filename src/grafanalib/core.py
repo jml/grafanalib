@@ -9,10 +9,25 @@ import enum
 import itertools
 import math
 import warnings
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import attr
 from attr.validators import instance_of
+from typing_extensions import Protocol
+
+
+def union(dicts: List[Dict[Any, Any]]) -> Dict[Any, Any]:
+    """Merge dictionaries.
+
+    Keys in later dictionaries overwrite keys in earlier ones.
+    If an empty list is provided, return an empty dictionary.
+    """
+    if not dicts:
+        return {}
+    ret = dict(dicts[0])
+    for d in dicts[1:]:
+        ret.update(d)
+    return ret
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -272,6 +287,37 @@ class Grid:
         }
 
 
+@attr.s(auto_attribs=True, frozen=True)
+class Panel:
+    """Common properties for all panels."""
+
+    # XXX: Should this be a base class or a component?
+
+    title: str
+    id: Optional[str] = None
+    span: Optional[int] = None  # XXX: Not on AlertList
+    transparent: bool = False
+    editable: bool = True
+    links: List[Any] = attr.Factory(list)  # TODO: What type are links?
+    height: Optional[int] = None  # TODO: What type is height? Not relevant in post-5.0 world.
+    description: Optional[str] = None
+
+    # error: bool = False
+    # minSpan: Optional[int]
+
+    def to_json_data(self):
+        return {
+            "title": self.title,
+            "id": self.id,
+            "links": self.links,
+            "span": self.span,
+            "transparent": self.transparent,
+            "editable": self.editable,
+            "height": self.height,
+            "description": self.description,
+        }
+
+
 @attr.s(frozen=True)
 class Legend:
     avg = attr.ib(default=False, validator=instance_of(bool))
@@ -467,7 +513,7 @@ def to_y_axes(data: Union[YAxes, Tuple[Any, Any], List[Any]]) -> YAxes:
 
 
 # TODO: Add a Panel type and use that instead of Any.
-def _balance_panels(panels: List[Any]) -> List[Any]:
+def _balance_panels(panels: List[Panel]) -> List[Panel]:
     """Resize panels so they are evenly spaced."""
     allotted_spans = sum(panel.span if panel.span else 0 for panel in panels)
     no_span_set = [panel for panel in panels if panel.span is None]
@@ -475,25 +521,41 @@ def _balance_panels(panels: List[Any]) -> List[Any]:
     return [attr.evolve(panel, span=auto_span) if panel.span is None else panel for panel in panels]
 
 
-@attr.s(frozen=True)
+class HasPanel(Protocol):
+    """A thing with a panel.
+
+    TODO: Probably want to make Panel a parameterized type that has a visualization.
+    """
+
+    panel: Panel
+
+
+def _balance_visualizations(vizs: Any) -> List[HasPanel]:
+    """Resize visualizations so they are evenly spaced."""
+    panels = _balance_panels([v.panel for v in vizs])
+    return [attr.evolve(viz, panel=panel) for viz, panel in zip(vizs, panels)]
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class Row:
+    # XXX: Grafana 5.0 and later doesn't use Row anymore.
     # TODO: jml would like to separate the balancing behaviour from this
     # layer.
-    panels = attr.ib(default=attr.Factory(list), converter=_balance_panels)
-    collapse = attr.ib(default=False, validator=instance_of(bool))
-    editable = attr.ib(default=True, validator=instance_of(bool))
-    height = attr.ib(
-        default=attr.Factory(lambda: DEFAULT_ROW_HEIGHT), validator=instance_of(Pixels)
-    )
-    showTitle = attr.ib(default=None)
-    title = attr.ib(default=None)
-    repeat = attr.ib(default=None)
+    panels: List[HasPanel] = attr.ib(default=attr.Factory(list), converter=_balance_visualizations)
+    collapse: bool = False
+    editable: bool = True
+    height: Pixels = DEFAULT_ROW_HEIGHT
+    showTitle: Optional[bool] = None
+    title: Optional[str] = None
+    repeat: Optional[Any] = None  # TODO: What type is this?
 
-    def iter_panels(self):
-        return iter(self.panels)
+    def iter_panels(self) -> Iterable[Panel]:
+        return (p.panel for p in self.panels)
 
-    def map_panels(self, f):
-        return attr.evolve(self, panels=list(map(f, self.panels)))
+    def map_panels(self, f: Callable[[Panel], Panel]) -> "Row":
+        panels = map(f, self.iter_panels())
+        with_panels = [attr.evolve(p, panel=panel) for p, panel in zip(self.panels, panels)]
+        return attr.evolve(self, panels=with_panels)
 
     def to_json_data(self):
         showTitle = False
@@ -888,22 +950,18 @@ class Graph:
     :param repeat: Template's name to repeat Graph on
     """
 
-    title = attr.ib()
+    panel = attr.ib(validator=instance_of(Panel))
     targets = attr.ib()
     aliasColors = attr.ib(default=attr.Factory(dict))
     bars = attr.ib(default=False, validator=instance_of(bool))
     dataSource = attr.ib(default=None)
-    description = attr.ib(default=None)
-    editable = attr.ib(default=True, validator=instance_of(bool))
     error = attr.ib(default=False, validator=instance_of(bool))
     fill = attr.ib(default=1, validator=instance_of(int))
     grid = attr.ib(default=attr.Factory(Grid), validator=instance_of(Grid))
-    id = attr.ib(default=None)
     isNew = attr.ib(default=True, validator=instance_of(bool))
     legend = attr.ib(default=attr.Factory(Legend), validator=instance_of(Legend))
     lines = attr.ib(default=True, validator=instance_of(bool))
     lineWidth = attr.ib(default=DEFAULT_LINE_WIDTH)
-    links = attr.ib(default=attr.Factory(list))
     minSpan = attr.ib(default=None)
     nullPointMode = attr.ib(default=NullPointMode.CONNECTED)
     percentage = attr.ib(default=False, validator=instance_of(bool))
@@ -912,34 +970,28 @@ class Graph:
     renderer = attr.ib(default=DEFAULT_RENDERER)
     repeat = attr.ib(default=None)
     seriesOverrides = attr.ib(default=attr.Factory(list))
-    span = attr.ib(default=None)
     stack = attr.ib(default=False, validator=instance_of(bool))
     steppedLine = attr.ib(default=False, validator=instance_of(bool))
     timeFrom = attr.ib(default=None)
     timeShift = attr.ib(default=None)
     tooltip = attr.ib(default=attr.Factory(Tooltip), validator=instance_of(Tooltip))
-    transparent = attr.ib(default=False, validator=instance_of(bool))
     xAxis = attr.ib(default=attr.Factory(XAxis), validator=instance_of(XAxis))
     # XXX: This isn't a *good* default, rather it's the default Grafana uses.
     yAxes = attr.ib(default=attr.Factory(YAxes), converter=to_y_axes, validator=instance_of(YAxes))
     alert = attr.ib(default=None)
 
     def to_json_data(self):
-        graphObject = {
+        graph_object = {
             "aliasColors": self.aliasColors,
             "bars": self.bars,
             "datasource": self.dataSource,
-            "description": self.description,
-            "editable": self.editable,
             "error": self.error,
             "fill": self.fill,
             "grid": self.grid,
-            "id": self.id,
             "isNew": self.isNew,
             "legend": self.legend,
             "lines": self.lines,
             "linewidth": self.lineWidth,
-            "links": self.links,
             "minSpan": self.minSpan,
             "nullPointMode": self.nullPointMode,
             "percentage": self.percentage,
@@ -948,22 +1000,17 @@ class Graph:
             "renderer": self.renderer,
             "repeat": self.repeat,
             "seriesOverrides": self.seriesOverrides,
-            "span": self.span,
             "stack": self.stack,
             "steppedLine": self.steppedLine,
             "targets": self.targets,
             "timeFrom": self.timeFrom,
             "timeShift": self.timeShift,
-            "title": self.title,
             "tooltip": self.tooltip,
-            "transparent": self.transparent,
-            "type": PanelType.GRAPH,
             "xaxis": self.xAxis,
             "yaxes": self.yAxes,
         }
-        if self.alert:
-            graphObject["alert"] = self.alert
-        return graphObject
+        alerts = {"alert": self.alert} if self.alert else {}
+        return union([self.panel.to_json_data(), graph_object, alerts])
 
 
 @attr.s(frozen=True)
@@ -1025,62 +1072,48 @@ class Gauge:
 class Text:
     """Generates a Text panel."""
 
+    type = PanelType.TEXT
+
+    panel = attr.ib(validator=instance_of(Panel))
     content = attr.ib()
-    editable = attr.ib(default=True, validator=instance_of(bool))
     error = attr.ib(default=False, validator=instance_of(bool))
-    height = attr.ib(default=None)
-    id = attr.ib(default=None)
-    links = attr.ib(default=attr.Factory(list))
     mode = attr.ib(default=TextMode.MARKDOWN)
-    span = attr.ib(default=None)
-    title = attr.ib(default="")
-    transparent = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            "content": self.content,
-            "editable": self.editable,
-            "error": self.error,
-            "height": self.height,
-            "id": self.id,
-            "links": self.links,
-            "mode": self.mode,
-            "span": self.span,
-            "title": self.title,
-            "transparent": self.transparent,
-            "type": PanelType.TEXT,
-        }
+        return union(
+            [
+                self.panel.to_json_data(),
+                {"content": self.content, "error": self.error, "mode": self.mode},
+            ]
+        )
 
 
 @attr.s(frozen=True)
 class AlertList:
     """Generates the AlertList Panel."""
 
-    description = attr.ib(default="")
-    id = attr.ib(default=None)
+    type = PanelType.ALERTLIST
+
+    panel = attr.ib(validator=instance_of(Panel))
     limit = attr.ib(default=DEFAULT_LIMIT)
-    links = attr.ib(default=attr.Factory(list))
     onlyAlertsOnDashboard = attr.ib(default=True, validator=instance_of(bool))
     show = attr.ib(default=AlertListShow.CURRENT, validator=instance_of(AlertListShow))
     sortOrder = attr.ib(default=SortOrder.ASC, validator=instance_of(SortOrder))
     stateFilter = attr.ib(default=attr.Factory(list))
-    title = attr.ib(default="")
-    transparent = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
-        return {
-            "description": self.description,
-            "id": self.id,
-            "limit": self.limit,
-            "links": self.links,
-            "onlyAlertsOnDashboard": self.onlyAlertsOnDashboard,
-            "show": self.show,
-            "sortOrder": self.sortOrder,
-            "stateFilter": self.stateFilter,
-            "title": self.title,
-            "transparent": self.transparent,
-            "type": PanelType.ALERTLIST,
-        }
+        return union(
+            [
+                self.panel.to_json_data(),
+                {
+                    "limit": self.limit,
+                    "onlyAlertsOnDashboard": self.onlyAlertsOnDashboard,
+                    "show": self.show,
+                    "sortOrder": self.sortOrder,
+                    "stateFilter": self.stateFilter,
+                },
+            ]
+        )
 
 
 @attr.s(frozen=True)
@@ -1091,23 +1124,17 @@ class SingleStat:
 
     :param dataSource: Grafana datasource name
     :param targets: list of metric requests for chosen datasource
-    :param title: panel title
     :param cacheTimeout: metric query result cache ttl
     :param colors: the list of colors that can be used for coloring
         panel value or background. Additional info on coloring in docs:
         http://docs.grafana.org/reference/singlestat/#coloring
     :param colorBackground: defines if grafana will color panel background
     :param colorValue: defines if grafana will color panel value
-    :param description: optional panel description
     :param decimals: override automatic decimal precision for legend/tooltips
-    :param editable: defines if panel is editable via web interfaces
     :param format: defines value units
     :param gauge: draws and additional speedometer-like gauge based
-    :param height: defines panel height
     :param hideTimeOverride: hides time overrides
-    :param id: panel id
     :param interval: defines time interval between metric queries
-    :param links: additional web links
     :param mappingType: defines panel mapping type.
         Additional info can be found in docs:
         http://docs.grafana.org/reference/singlestat/#value-to-text-mapping
@@ -1122,12 +1149,10 @@ class SingleStat:
     :param prefix: defines prefix that will be attached to value
     :param prefixFontSize: defines prefix font size
     :param rangeMaps: the list of value to text mappings
-    :param span: defines the number of spans that will be used for panel
     :param sparkline: defines if grafana should draw an additional sparkline.
         Sparkline grafana documentation:
         http://docs.grafana.org/reference/singlestat/#spark-lines
     :param thresholds: single stat thresholds
-    :param transparent: defines if panel should be transparent
     :param valueFontSize: defines value font size
     :param valueName: defines value type. possible values are:
         min, max, avg, current, total, name, first, delta, range
@@ -1135,23 +1160,20 @@ class SingleStat:
     :param timeFrom: time range that Override relative time
     """
 
+    type = PanelType.SINGLESTAT
+    panel = attr.ib(validator=instance_of(Panel))
+
     dataSource = attr.ib()
     targets = attr.ib()
-    title = attr.ib()
     cacheTimeout = attr.ib(default=None)
     colors = attr.ib(default=attr.Factory(lambda: [GREEN, ORANGE, RED]))
     colorBackground = attr.ib(default=False, validator=instance_of(bool))
     colorValue = attr.ib(default=False, validator=instance_of(bool))
-    description = attr.ib(default=None)
     decimals = attr.ib(default=None)
-    editable = attr.ib(default=True, validator=instance_of(bool))
     format = attr.ib(default="none")
     gauge = attr.ib(default=attr.Factory(Gauge), validator=instance_of(Gauge))
-    height = attr.ib(default=None)
     hideTimeOverride = attr.ib(default=False, validator=instance_of(bool))
-    id = attr.ib(default=None)
     interval = attr.ib(default=None)
-    links = attr.ib(default=attr.Factory(list))
     mappingType = attr.ib(default=MappingType.VALUE_TO_TEXT)
     mappingTypes = attr.ib(
         default=attr.Factory(lambda: [MAPPING_VALUE_TO_TEXT, MAPPING_RANGE_TO_TEXT])
@@ -1166,56 +1188,50 @@ class SingleStat:
     prefixFontSize = attr.ib(default="50%")
     rangeMaps = attr.ib(default=attr.Factory(list))
     repeat = attr.ib(default=None)
-    span = attr.ib(default=6)
     sparkline = attr.ib(default=attr.Factory(SparkLine), validator=instance_of(SparkLine))
     thresholds = attr.ib(default="")
-    transparent = attr.ib(default=False, validator=instance_of(bool))
     valueFontSize = attr.ib(default="80%")
     valueName = attr.ib(default=DEFAULT_VALUE_TYPE)
     valueMaps = attr.ib(default=attr.Factory(list))
     timeFrom = attr.ib(default=None)
 
     def to_json_data(self):
-        return {
-            "cacheTimeout": self.cacheTimeout,
-            "colorBackground": self.colorBackground,
-            "colorValue": self.colorValue,
-            "colors": self.colors,
-            "datasource": self.dataSource,
-            "decimals": self.decimals,
-            "description": self.description,
-            "editable": self.editable,
-            "format": self.format,
-            "gauge": self.gauge,
-            "id": self.id,
-            "interval": self.interval,
-            "links": self.links,
-            "height": self.height,
-            "hideTimeOverride": self.hideTimeOverride,
-            "mappingType": self.mappingType,
-            "mappingTypes": self.mappingTypes,
-            "maxDataPoints": self.maxDataPoints,
-            "minSpan": self.minSpan,
-            "nullPointMode": self.nullPointMode,
-            "nullText": self.nullText,
-            "postfix": self.postfix,
-            "postfixFontSize": self.postfixFontSize,
-            "prefix": self.prefix,
-            "prefixFontSize": self.prefixFontSize,
-            "rangeMaps": self.rangeMaps,
-            "repeat": self.repeat,
-            "span": self.span,
-            "sparkline": self.sparkline,
-            "targets": self.targets,
-            "thresholds": self.thresholds,
-            "title": self.title,
-            "transparent": self.transparent,
-            "type": PanelType.SINGLESTAT,
-            "valueFontSize": self.valueFontSize,
-            "valueMaps": self.valueMaps,
-            "valueName": self.valueName,
-            "timeFrom": self.timeFrom,
-        }
+        return union(
+            [
+                self.panel.to_json_data(),
+                {
+                    "cacheTimeout": self.cacheTimeout,
+                    "colorBackground": self.colorBackground,
+                    "colorValue": self.colorValue,
+                    "colors": self.colors,
+                    "datasource": self.dataSource,
+                    "decimals": self.decimals,
+                    "format": self.format,
+                    "gauge": self.gauge,
+                    "interval": self.interval,
+                    "hideTimeOverride": self.hideTimeOverride,
+                    "mappingType": self.mappingType,
+                    "mappingTypes": self.mappingTypes,
+                    "maxDataPoints": self.maxDataPoints,
+                    "minSpan": self.minSpan,
+                    "nullPointMode": self.nullPointMode,
+                    "nullText": self.nullText,
+                    "postfix": self.postfix,
+                    "postfixFontSize": self.postfixFontSize,
+                    "prefix": self.prefix,
+                    "prefixFontSize": self.prefixFontSize,
+                    "rangeMaps": self.rangeMaps,
+                    "repeat": self.repeat,
+                    "sparkline": self.sparkline,
+                    "targets": self.targets,
+                    "thresholds": self.thresholds,
+                    "valueFontSize": self.valueFontSize,
+                    "valueMaps": self.valueMaps,
+                    "valueName": self.valueName,
+                    "timeFrom": self.timeFrom,
+                },
+            ]
+        )
 
 
 @attr.s(frozen=True)
@@ -1346,49 +1362,35 @@ class Table:
 
     :param columns: table columns for Aggregations view
     :param dataSource: Grafana datasource name
-    :param description: optional panel description
-    :param editable: defines if panel is editable via web interfaces
     :param fontSize: defines value font size
-    :param height: defines panel height
     :param hideTimeOverride: hides time overrides
-    :param id: panel id
-    :param links: additional web links
     :param minSpan: minimum span number
     :param pageSize: rows per page (None is unlimited)
     :param scroll: scroll the table instead of displaying in full
     :param showHeader: show the table header
-    :param span: defines the number of spans that will be used for panel
     :param styles: defines formatting for each column
     :param targets: list of metric requests for chosen datasource
     :param timeFrom: time range that Override relative time
-    :param title: panel title
     :param transform: table style
-    :param transparent: defines if panel should be transparent
     """
 
+    type = PanelType.TABLE
+
+    panel = attr.ib(validator=instance_of(Panel))
     dataSource = attr.ib()
     targets = attr.ib()
-    title = attr.ib()
     columns = attr.ib(default=attr.Factory(list))
-    description = attr.ib(default=None)
-    editable = attr.ib(default=True, validator=instance_of(bool))
     fontSize = attr.ib(default="100%")
-    height = attr.ib(default=None)
     hideTimeOverride = attr.ib(default=False, validator=instance_of(bool))
-    id = attr.ib(default=None)
-    links = attr.ib(default=attr.Factory(list))
     minSpan = attr.ib(default=None)
     pageSize = attr.ib(default=None)
     repeat = attr.ib(default=None)
     scroll = attr.ib(default=True, validator=instance_of(bool))
     showHeader = attr.ib(default=True, validator=instance_of(bool))
-    span = attr.ib(default=6)
     sort = attr.ib(default=attr.Factory(ColumnSort), validator=instance_of(ColumnSort))
     styles = attr.ib()
     timeFrom = attr.ib(default=None)
-
     transform = attr.ib(default=Transform.COLUMNS)
-    transparent = attr.ib(default=False, validator=instance_of(bool))
 
     @styles.default
     def styles_default(self):  # pylint: disable=no-self-use
@@ -1415,28 +1417,24 @@ class Table:
         return cls(columns=columns, styles=styles + extraStyles, **kwargs)
 
     def to_json_data(self):
-        return {
-            "columns": self.columns,
-            "datasource": self.dataSource,
-            "description": self.description,
-            "editable": self.editable,
-            "fontSize": self.fontSize,
-            "height": self.height,
-            "hideTimeOverride": self.hideTimeOverride,
-            "id": self.id,
-            "links": self.links,
-            "minSpan": self.minSpan,
-            "pageSize": self.pageSize,
-            "repeat": self.repeat,
-            "scroll": self.scroll,
-            "showHeader": self.showHeader,
-            "span": self.span,
-            "sort": self.sort,
-            "styles": self.styles,
-            "targets": self.targets,
-            "timeFrom": self.timeFrom,
-            "title": self.title,
-            "transform": self.transform,
-            "transparent": self.transparent,
-            "type": PanelType.TABLE,
-        }
+        return union(
+            [
+                self.panel.to_json_data(),
+                {
+                    "columns": self.columns,
+                    "datasource": self.dataSource,
+                    "fontSize": self.fontSize,
+                    "hideTimeOverride": self.hideTimeOverride,
+                    "minSpan": self.minSpan,
+                    "pageSize": self.pageSize,
+                    "repeat": self.repeat,
+                    "scroll": self.scroll,
+                    "showHeader": self.showHeader,
+                    "sort": self.sort,
+                    "styles": self.styles,
+                    "targets": self.targets,
+                    "timeFrom": self.timeFrom,
+                    "transform": self.transform,
+                },
+            ]
+        )
