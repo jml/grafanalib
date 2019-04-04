@@ -3,7 +3,7 @@
 import grafanalib.core as G
 
 
-def test_table_styled_columns():
+def test_table_styled_columns() -> None:
     t = G.Table.with_styled_columns(
         columns=[(G.Column("Foo", "foo"), G.ColumnStyle()), (G.Column("Bar", "bar"), None)],
         dataSource="some data source",
@@ -14,7 +14,7 @@ def test_table_styled_columns():
     assert t.styles == [G.ColumnStyle(pattern="Foo")]
 
 
-def test_single_stat():
+def test_single_stat() -> None:
     data_source = "dummy data source"
     targets = ["dummy_prom_query"]
     title = "dummy title"

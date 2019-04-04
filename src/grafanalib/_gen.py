@@ -5,6 +5,7 @@ import imp
 import json
 import os
 import sys
+from typing import IO, Any
 
 DASHBOARD_SUFFIX = ".dashboard.py"
 
@@ -38,8 +39,8 @@ class DashboardEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-def write_dashboard(dashboard, stream):
-    json.dump(dashboard.to_json_data(), stream, sort_keys=True, indent=2, cls=DashboardEncoder)
+def write_dashboard(dashboard: Any, stream: IO[str]):
+    json.dump(dashboard, stream, sort_keys=True, indent=2, cls=DashboardEncoder)
     stream.write("\n")
 
 

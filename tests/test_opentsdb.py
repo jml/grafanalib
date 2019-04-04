@@ -7,7 +7,7 @@ from grafanalib import _gen
 from grafanalib.opentsdb import OpenTSDBFilter, OpenTSDBTarget, QueryFilter
 
 
-def test_serialization_opentsdb_target():
+def test_serialization_opentsdb_target() -> None:
     """Serializing a graph doesn't explode."""
     graph = G.Graph(
         panel=G.Panel(title="CPU Usage"),

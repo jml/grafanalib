@@ -8,7 +8,7 @@ from grafanalib import _gen
 # TODO: Use Hypothesis to generate a more thorough battery of smoke tests.
 
 
-def test_serialization():
+def test_serialization() -> None:
     """Serializing a graph doesn't explode."""
     graph = G.Graph(
         panel=G.Panel(title="CPU Usage by Namespace (rate[5m])"),
@@ -30,7 +30,7 @@ def test_serialization():
     assert stream.getvalue() != ""
 
 
-def test_auto_id():
+def test_auto_id() -> None:
     """auto_panel_ids() provides IDs for all panels without IDs already set."""
     dashboard = G.Dashboard(
         title="Test dashboard",
@@ -55,7 +55,7 @@ def test_auto_id():
     assert dashboard.rows[0].panels[0].panel.id == 1
 
 
-def test_row_show_title():
+def test_row_show_title() -> None:
     row = G.Row().to_json_data()
     assert row["title"] == "New row"
     assert not row["showTitle"]

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import attr
 from attr.validators import in_, instance_of
@@ -136,8 +136,12 @@ class ZabbixTarget:
         return obj
 
 
+class ZabbixFunction:
+    """Base type for Zabbix functions."""
+
+
 @attr.s(frozen=True)
-class ZabbixDeltaFunction:
+class ZabbixDeltaFunction(ZabbixFunction):
     """ZabbixDeltaFunction
 
     Convert absolute values to delta, for example, bits to bits/sec
@@ -153,7 +157,7 @@ class ZabbixDeltaFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixGroupByFunction:
+class ZabbixGroupByFunction(ZabbixFunction):
     """ZabbixGroupByFunction
 
     Takes each timeseries and consolidate its points falled in given interval
@@ -189,7 +193,7 @@ class ZabbixGroupByFunction:
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ZabbixScaleFunction:
+class ZabbixScaleFunction(ZabbixFunction):
     """ZabbixScaleFunction
 
     Takes timeseries and multiplies each point by the given factor.
@@ -218,7 +222,7 @@ class ZabbixScaleFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixAggregateByFunction:
+class ZabbixAggregateByFunction(ZabbixFunction):
     """ZabbixAggregateByFunction
 
     Takes all timeseries and consolidate all its points falled in given
@@ -255,7 +259,7 @@ class ZabbixAggregateByFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixAverageFunction:
+class ZabbixAverageFunction(ZabbixFunction):
     """ZabbixAverageFunction
 
     Deprecated, use aggregateBy(interval, avg) instead.
@@ -284,7 +288,7 @@ class ZabbixAverageFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixMaxFunction:
+class ZabbixMaxFunction(ZabbixFunction):
     """ZabbixMaxFunction
 
     Deprecated, use aggregateBy(interval, max) instead.
@@ -313,7 +317,7 @@ class ZabbixMaxFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixMedianFunction:
+class ZabbixMedianFunction(ZabbixFunction):
     """ZabbixMedianFunction
 
     Deprecated, use aggregateBy(interval, median) instead.
@@ -342,7 +346,7 @@ class ZabbixMedianFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixMinFunction:
+class ZabbixMinFunction(ZabbixFunction):
     """ZabbixMinFunction
 
     Deprecated, use aggregateBy(interval, min) instead.
@@ -371,7 +375,7 @@ class ZabbixMinFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixSumSeriesFunction:
+class ZabbixSumSeriesFunction(ZabbixFunction):
     """ZabbixSumSeriesFunction
 
     This will add metrics together and return the sum at each datapoint.
@@ -395,7 +399,7 @@ class ZabbixSumSeriesFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixBottomFunction:
+class ZabbixBottomFunction(ZabbixFunction):
 
     _options = ("avg", "min", "max", "median")
     _default_number = 5
@@ -425,7 +429,7 @@ class ZabbixBottomFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixTopFunction:
+class ZabbixTopFunction(ZabbixFunction):
 
     _options = ("avg", "min", "max", "median")
     _default_number = 5
@@ -455,7 +459,7 @@ class ZabbixTopFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixTrendValueFunction:
+class ZabbixTrendValueFunction(ZabbixFunction):
     """ZabbixTrendValueFunction
 
     Specifying type of trend value returned by Zabbix when
@@ -485,7 +489,7 @@ class ZabbixTrendValueFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixTimeShiftFunction:
+class ZabbixTimeShiftFunction(ZabbixFunction):
     """ZabbixTimeShiftFunction
 
     Draws the selected metrics shifted in time.
@@ -518,7 +522,7 @@ class ZabbixTimeShiftFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixSetAliasFunction:
+class ZabbixSetAliasFunction(ZabbixFunction):
     """ZabbixSetAliasFunction
 
     Returns given alias instead of the metric name.
@@ -545,7 +549,7 @@ class ZabbixSetAliasFunction:
 
 
 @attr.s(frozen=True)
-class ZabbixSetAliasByRegexFunction:
+class ZabbixSetAliasByRegexFunction(ZabbixFunction):
     """ZabbixSetAliasByRegexFunction
 
     Returns part of the metric name matched by regex.
@@ -571,7 +575,13 @@ class ZabbixSetAliasByRegexFunction:
         }
 
 
-def zabbixMetricTarget(application, group, host, item, functions=None):
+def zabbixMetricTarget(
+    application: str,
+    group: str,
+    host: str,
+    item: str,
+    functions: Optional[List[ZabbixFunction]] = None,
+) -> ZabbixTarget:
     functions = functions if functions else []
     return ZabbixTarget(
         mode=ZabbixMode.METRICS,

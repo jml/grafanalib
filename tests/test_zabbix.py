@@ -7,7 +7,7 @@ import grafanalib.zabbix as Z
 from grafanalib import _gen
 
 
-def test_serialization_zabbix_target():
+def test_serialization_zabbix_target() -> None:
     """Serializing a graph doesn't explode."""
     graph = G.Graph(
         panel=G.Panel(title="CPU Usage"),
@@ -31,7 +31,7 @@ def test_serialization_zabbix_target():
     assert stream.getvalue() != ""
 
 
-def test_serialization_zabbix_trigger_panel():
+def test_serialization_zabbix_trigger_panel() -> None:
     """Serializing a graph doesn't explode."""
     graph = Z.ZabbixTriggersPanel(
         id=1,

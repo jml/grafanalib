@@ -9,7 +9,7 @@ import enum
 import itertools
 import math
 import warnings
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 import attr
 from attr.validators import instance_of
@@ -305,7 +305,7 @@ class Panel:
     # error: bool = False
     # minSpan: Optional[int]
 
-    def to_json_data(self):
+    def to_json_data(self) -> Dict[str, Any]:
         return {
             "title": self.title,
             "id": self.id,
@@ -536,6 +536,9 @@ def _balance_visualizations(vizs: Any) -> List[HasPanel]:
     return [attr.evolve(viz, panel=panel) for viz, panel in zip(vizs, panels)]
 
 
+RowT = TypeVar("RowT", bound="Row")
+
+
 @attr.s(auto_attribs=True, frozen=True)
 class Row:
     # XXX: Grafana 5.0 and later doesn't use Row anymore.
@@ -552,12 +555,12 @@ class Row:
     def iter_panels(self) -> Iterable[Panel]:
         return (p.panel for p in self.panels)
 
-    def map_panels(self, f: Callable[[Panel], Panel]) -> "Row":
+    def map_panels(self: RowT, f: Callable[[Panel], Panel]) -> RowT:
         panels = map(f, self.iter_panels())
         with_panels = [attr.evolve(p, panel=panel) for p, panel in zip(self.panels, panels)]
         return attr.evolve(self, panels=with_panels)
 
-    def to_json_data(self):
+    def to_json_data(self) -> Dict[str, Any]:
         showTitle = False
         title = "New row"
         if self.title is not None:
@@ -865,6 +868,9 @@ class Alert:
         }
 
 
+DashboardT = TypeVar("DashboardT", bound="Dashboard")
+
+
 @attr.s(frozen=True)
 class Dashboard:
 
@@ -891,15 +897,15 @@ class Dashboard:
     version = attr.ib(default=0)
     uid = attr.ib(default=None)
 
-    def iter_panels(self):
+    def iter_panels(self) -> Iterable[Panel]:
         for row in self.rows:
             for panel in row.iter_panels():
                 yield panel
 
-    def map_panels(self, f):
+    def map_panels(self: DashboardT, f: Callable[[Panel], Panel]) -> DashboardT:
         return attr.evolve(self, rows=[r.map_panels(f) for r in self.rows])
 
-    def auto_panel_ids(self):
+    def auto_panel_ids(self: DashboardT) -> DashboardT:
         """Give unique IDs all the panels without IDs.
 
         Returns a new ``Dashboard`` that is the same as this one, except all
@@ -915,7 +921,7 @@ class Dashboard:
 
         return self.map_panels(set_id)
 
-    def to_json_data(self):
+    def to_json_data(self) -> Dict[str, Any]:
         return {
             "__inputs": self.inputs,
             "annotations": self.annotations,
@@ -1195,7 +1201,7 @@ class SingleStat:
     valueMaps = attr.ib(default=attr.Factory(list))
     timeFrom = attr.ib(default=None)
 
-    def to_json_data(self):
+    def to_json_data(self) -> Dict[str, Any]:
         return union(
             [
                 self.panel.to_json_data(),
@@ -1326,7 +1332,9 @@ class Column:
         return {"text": self.text, "value": self.value}
 
 
-def _style_columns(columns):
+def _style_columns(
+    columns: List[Tuple[Column, Optional[ColumnStyle]]]
+) -> Tuple[List[Column], List[ColumnStyle]]:
     """Generate a list of column styles given some styled columns.
 
     The 'Table' object in Grafana separates column definitions from column
@@ -1352,6 +1360,9 @@ def _style_columns(columns):
             )
         styles.append(attr.evolve(style, pattern=column.text))
     return new_columns, styles
+
+
+TableT = TypeVar("TableT", bound="Table")
 
 
 @attr.s(frozen=True)
@@ -1400,7 +1411,12 @@ class Table:
         ]
 
     @classmethod
-    def with_styled_columns(cls, columns, styles=None, **kwargs):
+    def with_styled_columns(
+        cls: Type[TableT],
+        columns: List[Tuple[Column, Optional[ColumnStyle]]],
+        styles: Optional[List[ColumnStyle]] = None,
+        **kwargs,
+    ) -> TableT:
         """Construct a table where each column has an associated style.
 
         :param columns: A list of (Column, ColumnStyle) pairs, where the
@@ -1412,11 +1428,11 @@ class Table:
         :param **kwargs: Other parameters to the Table constructor.
         :return: A Table.
         """
-        extraStyles = styles if styles else []
-        columns, styles = _style_columns(columns)
-        return cls(columns=columns, styles=styles + extraStyles, **kwargs)
+        extra_styles = styles if styles else []
+        new_columns, new_styles = _style_columns(columns)
+        return cls(columns=new_columns, styles=new_styles + extra_styles, **kwargs)
 
-    def to_json_data(self):
+    def to_json_data(self) -> Dict[str, Any]:
         return union(
             [
                 self.panel.to_json_data(),
