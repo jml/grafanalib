@@ -16,7 +16,7 @@ def test_table_styled_columns() -> None:
 
 def test_single_stat() -> None:
     data_source = "dummy data source"
-    targets = ["dummy_prom_query"]
+    targets = [G.Target(expr="dummy_prom_query")]
     title = "dummy title"
     single_stat = G.SingleStat(dataSource=data_source, targets=targets, panel=G.Panel(title))
     data = single_stat.to_json_data()

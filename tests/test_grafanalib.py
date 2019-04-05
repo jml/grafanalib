@@ -14,11 +14,11 @@ def test_serialization() -> None:
         panel=G.Panel(title="CPU Usage by Namespace (rate[5m])"),
         dataSource="My data source",
         targets=[
-            G.Target(
-                expr="namespace:container_cpu_usage_seconds_total:sum_rate",
-                legendFormat="{{namespace}}",
-                refId="A",
-            )
+            # G.Target(
+            #     expr="namespace:container_cpu_usage_seconds_total:sum_rate",
+            #     legendFormat="{{namespace}}",
+            #     refId="A",
+            # )
         ],
         yAxes=G.YAxes(
             left=G.YAxis(format=G.NumberFormat.SHORT, label="CPU seconds / second"),

@@ -7,6 +7,7 @@ from grafanalib.core import (
     DEFAULT_ROW_HEIGHT,
     GREEN,
     RGBA,
+    BaseTarget,
     DashboardLink,
     Enum,
     Percent,
@@ -64,7 +65,7 @@ class ZabbixTargetField:
 
 
 @attr.s(frozen=True)
-class ZabbixTarget:
+class ZabbixTarget(BaseTarget):
     """Generates Zabbix datasource target JSON structure.
 
     Grafana-Zabbix is a plugin for Grafana allowing

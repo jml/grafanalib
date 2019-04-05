@@ -2,7 +2,7 @@
 
 import attr
 from attr.validators import instance_of
-from grafanalib.core import Enum
+from grafanalib.core import BaseTarget, Enum
 
 
 class Aggregator(Enum):
@@ -74,7 +74,7 @@ class OpenTSDBFilter:
 
 
 @attr.s(frozen=True)
-class OpenTSDBTarget:
+class OpenTSDBTarget(BaseTarget):
     """Generates OpenTSDB target JSON structure.
 
     Grafana docs on using OpenTSDB:
